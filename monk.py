@@ -33,7 +33,8 @@ def usage():
 	listOfAllModule = monkModule.list_all_module_with_desc()
 	for mod in listOfAllModule:
 		print "		" + mod[0] + " / " + mod[0] + "-clean"
-		print "			" + mod[1]
+		if mod[1] != "":
+			print "			" + mod[1]
 	print "	ex: " + sys.argv[0] + " all"
 	exit(0)
 

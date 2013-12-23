@@ -324,7 +324,10 @@ def import_path(path):
 			debug.debug("integrate module: '" + moduleName + "' from '" + os.path.join(root, filename) + "'")
 			theModule = __import__(__startModuleName + moduleName)
 			tmpElement = theModule.create()
-			tmpdesc = theModule.get_desc()
+			try:
+				tmpdesc = theModule.get_desc()
+			except:
+				tmpdesc = ""
 			if (tmpElement == None) :
 				debug.warning("Request load module '" + name + "' not define for this platform")
 			moduleList.append({"name":moduleName, "path":os.path.join(root, filename), "node":tmpElement, "desc":tmpdesc})
@@ -350,4 +353,6 @@ def list_all_module_with_desc():
 		tmpList.append([mod["name"], mod["desc"]])
 	return tmpList
 
+def get_link_type(type):
+	return ""
 
