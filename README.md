@@ -11,14 +11,17 @@ Create a monk doc
 =================
 
 Set the monk module maker with the name :
+
 	monk_xxxxx.py
 	xxx : represent the name of the module/application and must be lower case and no special characters
 
 you can see exemple for some type in :
+
 	ewol : library
 	edn : application
 
 Build your documantation:
+
 	./monk.py
 
 
