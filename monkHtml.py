@@ -15,50 +15,17 @@ global_class_link = {
 	"std::vector"    : "http://www.cplusplus.com/reference/vector/vector/"
 	}
 
-
-def replace_type(match):
-	value = "<span class=\"code-type\">" + match.group() + "</span>"
-	return value
-
-def replace_storage_keyword(match):
-	value = "<span class=\"code-storage-keyword\">" + match.group() + "</span>"
-	return value
-
-def display_color(valBase):
+def display_color(val):
 	# storage keyword :
-	p = re.compile("(inline|const|class|virtual|private|public|protected|friend|const|extern|auto|register|static|volatile|typedef|struct|union|enum)")
-	val = p.sub(replace_storage_keyword, valBase)
+	val = re.sub(r'(inline|const|class|virtual|private|public|protected|friend|const|extern|auto|register|static|volatile|typedef|struct|union|enum)',
+	             r'<span class="code-storage-keyword">\1</span>',
+	             val)
 	# type :
-	p = re.compile("(bool|BOOL|char(16_t|32_t)?|double|float|u?int(8|16|32|64|128)?(_t)?|long|short|signed|size_t|unsigned|void|(I|U)(8|16|32|64|128))")
-	val = p.sub(replace_type, val)
-	return val, len(valBase)
+	val = re.sub(r'(bool|BOOL|char(16_t|32_t)?|double|float|u?int(8|16|32|64|128)?(_t)?|long|short|signed|size_t|unsigned|void|(I|U)(8|16|32|64|128))',
+	             r'<span class="code-type">\1</span>',
+	             val)
+	return val
 
-def display_type(type, myDoc):
-	type = type.replace("inline ", "")
-	lenght = 0;
-	isFirst = True
-	out = ''
-	# we split all the element in list sepa=rated with space to keep class... and standard c+ class
-	for element in type.split(' '):
-		if isFirst == False:
-			out += " "
-			lenght += 1
-		isFirst = False
-		# check if the element in internal at the current lib
-		name, link = myDoc.get_class_link(element)
-		if len(link) != 0:
-			out += "<a href=\"" + link + "\" class=\"code-type\">" + name + "</a>"
-			lenght += len(element)
-		# Ckeck if the variable in a standard class:
-		elif element in global_class_link.keys():
-			out += "<a href=\"" + global_class_link[element] + "\" class=\"code-type\">" + element + "</a>"
-			lenght += len(element)
-		else:
-			data, lenghtTmp = display_color(element)
-			out += data
-			lenght += lenghtTmp
-	# get every subelement class :
-	return [out,lenght]
 
 def display_doxygen_param(comment, input, output):
 	data = "<b>Parameter"
@@ -130,30 +97,6 @@ def white_space(size) :
 	for iii in range(len(ret), size):
 		ret += " "
 	return ret
-
-
-
-
-def calsulateSizeFunction(function, size) :
-	if len(function["name"]) > size:
-		return len(function["name"])+1
-	return size
-
-def calsulateSizeReturn(function, size) :
-	if len(function["rtnType"]) > size:
-		return len(function["rtnType"])+1
-	return size
-
-
-def addSub(tree, filterSubNamespace=False):
-	return ""
-
-
-# ##############################################################
-# NEW function ...
-# ##############################################################
-
-
 
 def generate_menu(element, namespaceStack=[], level=1):
 	listBase = element.get_all_sub_type(['namespace'])
@@ -228,9 +171,11 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 	if retType != "":
 		retType2 = re.sub("<","&lt;", retType)
 		retType2 = re.sub(">","&gt;", retType2)
+		retType2 = display_color(retType2)
 		ret += retType2
 		ret += " "
-	ret += white_space(displaySize[0] - len(retType))
+		retType += " "
+	ret += white_space(displaySize[0] - len(retType)+1)
 	name = element['node'].get_name()
 	if link == True:
 		ret += '<a class="code-function" href="#' + str(element['node'].get_uid()) + '">' + name + '</a>'
@@ -244,7 +189,7 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 			ret += ',<br/>'
 			ret += white_space(displaySize[0] + displaySize[1] +5)
 		first = False
-		retParam = param.get_type().to_str()
+		retParam = display_color(param.get_type().to_str())
 		if retParam != "":
 			ret += retParam
 			ret += " "
@@ -253,7 +198,7 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 	if element['node'].get_virtual_pure() == True:
 		ret += ' = 0'
 	if element['node'].get_constant() == True:
-		ret += ' const'
+		ret += display_color(' const')
 	
 	ret += ';'
 	ret += '<br/>'
@@ -283,8 +228,6 @@ def generate_page(outFolder, header, footer, element, namespaceStack=[]):
 				namespaceStack.pop()
 			else:
 				generate_page(outFolder, header, footer, elem['node'], namespaceStack)
-	
-	
 	filename = outFolder + '/' + generate_html_page_name(element, namespaceStack)
 	monkTools.create_directory_of_file(filename);
 	file = open(filename, "w")

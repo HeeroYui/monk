@@ -5,7 +5,7 @@ import monkType as Type
 import monkVariable as Variable
 
 class Methode(Node.Node):
-	def __init__(self, stack=[], file="", lineNumber=0, documentation=[]):
+	def __init__(self, stack=[], file="", lineNumber=0, documentation=[], className = ""):
 		name = ""
 		type = 'methode'
 		self.virtual = False
@@ -44,7 +44,7 @@ class Methode(Node.Node):
 		
 		namePos = -1
 		
-		debug.verbose("methode parse : " + str(stack))
+		debug.debug("methode parse : " + str(stack))
 		for iii in range(0, len(stack)-2):
 			if stack[iii+1] == '(':
 				name = stack[iii]
@@ -52,12 +52,14 @@ class Methode(Node.Node):
 				break;
 		
 		if namePos == 0:
-			debug.verbose("start with '" + str(name[0]) + "'")
+			debug.debug("start with '" + str(name[0]) + "'")
 			if name[0] == '~':
-				type = 'destructor'
+				if className == name[1:]:
+					type = 'destructor'
 			else:
-				type = 'constructor'
-		debug.verbose("methode name : " + name)
+				if className == name:
+					type = 'constructor'
+		debug.debug("methode name : " + name)
 		Node.Node.__init__(self, type, name, file, lineNumber, documentation)
 		
 		self.returnType = Type.TypeNone()
@@ -65,11 +67,11 @@ class Methode(Node.Node):
 		
 		# create the return Type (Can be Empty)
 		retTypeStack = stack[:namePos]
-		debug.verbose("return : " + str(retTypeStack))
+		debug.debug("return : " + str(retTypeStack))
 		self.returnType = Type.Type(retTypeStack)
 		
 		parameterStack = stack[namePos+2:len(stack)-1]
-		debug.verbose("parameter : " + str(parameterStack))
+		debug.debug("parameter : " + str(parameterStack))
 		paramTmp = []
 		braceOpen = 0
 		for element in parameterStack:

@@ -200,13 +200,15 @@ def create_compleate_class_name(table):
 		for name in table:
 			if len(out) == 0:
 				out.append(name)
-			elif     name in ['<','>','='] \
-			     and out[-1][:8] == 'operator' \
-			     and len(out[-1])-8 < 2:
+			elif     out[-1][:8] == 'operator' \
+			     and name != '(':
+				if out[-1] == 'operator':
+					out[-1] += ' '
+				if out[-1][-1] not in [' ', '<','>','=', '-', '!', '+', '*', '&', '|', '/']:
+					out[-1] += ' '
 				out[-1] += name
 			else:
 				out.append(name)
-			
 	return out
 
 
@@ -282,6 +284,7 @@ class parse_file():
 					self.subModuleCountBrace -= 1
 				if self.subModuleCountBrace <= 0:
 					self.brace_type_pop()
+					self.lastComment = []
 				continue
 			# normal case:
 			if tok.type == 'PRECOMP':
@@ -433,7 +436,10 @@ class parse_file():
 			ret = Union.Union(stack, self.headerFileName, self.curLine, self.lastComment)
 		elif type == 'function':
 			#debug.info(str(self.lastComment))
-			ret = Methode.Methode(stack, self.headerFileName, self.curLine, self.lastComment)
+			if self.get_last_type() == 'class':
+				ret = Methode.Methode(stack, self.headerFileName, self.curLine, self.lastComment, self.braceDepthType[len(self.braceDepthType)-1]['node'].get_name())
+			else:
+				ret = Methode.Methode(stack, self.headerFileName, self.curLine, self.lastComment)
 		elif type == 'enum':
 			ret = Enum.Enum(stack, self.headerFileName, self.curLine, self.lastComment)
 		elif type == 'variable':

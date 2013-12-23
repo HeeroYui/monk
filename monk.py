@@ -76,7 +76,7 @@ def start():
 			debug.warning("Can not understand argument : '" + argument.get_option_name() + "'")
 			usage()
 		else:
-			module = monkModule.get_module(argument.GetArg())
+			module = monkModule.get_module(argument.get_arg())
 			module.parse_code()
 			module.generate()
 			actionDone=True

@@ -7,6 +7,7 @@ class Variable(Node.Node):
 	def __init__(self, stack=[], file="", lineNumber=0, documentation=[]):
 		debug.debug("Parse variable : " + str(stack))
 		name = ""
+		type = []
 		if '=' in stack:
 			plop = []
 			for element in stack:
@@ -26,14 +27,12 @@ class Variable(Node.Node):
 		stack = res
 		
 		if len(stack) < 2:
-			if stack[0] == 'void':
-				pass
-			else:
-				debug.error("Can not parse variable : " + str(stack))
+			type = stack
 		else:
 			name = stack[len(stack)-1]
+			type = stack[:len(stack)-1]
 		
-		Node.Node.__init__(self, 'variable', stack[len(stack)-1], file, lineNumber, documentation)
+		Node.Node.__init__(self, 'variable', name, file, lineNumber, documentation)
 		# force the sublist error  generation ...
 		self.subList = None
 		# default variable :
@@ -41,21 +40,18 @@ class Variable(Node.Node):
 		self.static = False
 		self.external = False
 		self.volatile = False
-		#empty name ... ==> this is really bad ...
-		if name == "":
-			return
 		
-		if 'static' in stack:
+		if 'static' in type:
 			self.static = True
-			stack = [value for value in stack if value != 'static']
+			type = [value for value in type if value != 'static']
 		if 'volatile' in stack:
 			self.volatile = True
-			stack = [value for value in stack if value != 'volatile']
+			type = [value for value in type if value != 'volatile']
 		if 'external' in stack:
 			self.external = True
-			stack = [value for value in stack if value != 'external']
+			type = [value for value in type if value != 'external']
 		
-		self.type = Type.Type(stack[:len(stack)-1])
+		self.type = Type.Type(type)
 		
 		debug.verbose("find variable : " + self.to_str())
 	
