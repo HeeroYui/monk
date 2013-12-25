@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import monkDebug as debug
 import monkNode as Node
+import monkModule as module
 
 
 ##
@@ -57,6 +58,20 @@ class Class(Node.Node):
 				ret += element['access'] + " " + element['class']
 		ret += " { ... };"
 		return ret
+	
+	def get_parents(self):
+		if len(self.inherit) == 0:
+			return []
+		# note this ony get the first parent ...
+		parent = module.get_element_with_name(self.inherit[0]['class'])
+		cparent = []
+		if parent != None:
+			debug.info(" plop : " + self.name + " " + str(parent) + " " + parent.get_name())
+			cparent = parent.get_parents()
+			pass
+		#heritage = parent.
+		cparent.append(self.inherit[0])
+		return cparent
 
 
 

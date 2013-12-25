@@ -98,41 +98,42 @@ def white_space(size) :
 		ret += " "
 	return ret
 
-def generate_menu(element, namespaceStack=[], level=1):
+def generate_menu(element, level=1):
+	namespaceStack = element.get_namespace()
 	listBase = element.get_all_sub_type(['namespace'])
 	if len(listBase) == 0:
 		return ""
 	ret = ""
 	ret += '<ul class="niveau' + str(level) + '">\n'
 	for element in listBase:
-		namespaceStack.append(element['node'].get_name())
-		retTmp = generate_menu(element['node'], namespaceStack, level+1)
-		namespaceStack.pop()
+		retTmp = generate_menu(element['node'], level+1)
 		if retTmp != "":
 			subMenu = ' class="sousmenu"'
 		else:
 			subMenu = ''
-		ret += '	<li' + subMenu + '>' + generate_link(element['node'], namespaceStack) + '\n'
+		ret += '	<li' + subMenu + '>' + generate_link(element['node']) + '\n'
 		ret += retTmp
 		ret += '	</li>\n'
 	ret += '</ul>\n'
 	return ret
 
-def generate_html_page_name(element, namespaceStack):
+def generate_html_page_name(element):
+	namespaceStack = element.get_namespace()
 	link = ""
 	for name in namespaceStack:
 		link += name + "__"
 	return element.get_node_type() + "_" + link + element.get_name() + '.html'
 
-def generate_name(element, namespaceStack):
+def generate_name(element):
+	namespaceStack = element.get_namespace()
 	link = ""
 	for name in namespaceStack:
 		link += name + "::"
 	return element.get_node_type() + ": " + link + element.get_name()
 
 
-def generate_link(element, namespaceStack):
-	return '<a href="' + generate_html_page_name(element, namespaceStack) + '">' + element.get_name() + '</a>'
+def generate_link(element):
+	return '<a href="' + generate_html_page_name(element) + '">' + element.get_name() + '</a>'
 
 def calculate_methode_size(list):
 	returnSize = 0;
@@ -218,80 +219,143 @@ def generate_stupid_index_page(outFolder, header, footer, myLutinDoc):
 	file.write(footer)
 	file.close();
 
-def generate_page(outFolder, header, footer, element, namespaceStack=[]):
+def generate_page(outFolder, header, footer, element):
+	namespaceStack = element.get_namespace()
 	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union']:
 		listBase = element.get_all_sub_type(['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union'])
 		for elem in listBase:
-			if element.get_node_type() in ['namespace', 'class', 'struct']:
-				namespaceStack.append(element.get_name())
-				generate_page(outFolder, header, footer, elem['node'], namespaceStack)
-				namespaceStack.pop()
-			else:
-				generate_page(outFolder, header, footer, elem['node'], namespaceStack)
-	filename = outFolder + '/' + generate_html_page_name(element, namespaceStack)
+			generate_page(outFolder, header, footer, elem['node'])
+	filename = outFolder + '/' + generate_html_page_name(element)
 	monkTools.create_directory_of_file(filename);
 	file = open(filename, "w")
 	file.write(header)
-	file.write("<h1>" + generate_name(element, namespaceStack) + "</h1>");
-	file.write("<hr/>");
-	if element.get_node_type() == 'library':
-		file.write("TODO : the page ...");
-	elif element.get_node_type() == 'application':
-		file.write("TODO : the page ...");
-	elif element.get_node_type() == 'namespace':
-		file.write("TODO : the page ...");
-	elif element.get_node_type() == 'class':
-		# calculate element size :
-		listBase = element.get_all_sub_type(['methode', 'constructor', 'destructor'])
-		displayLen = calculate_methode_size(listBase)
+	file.write('<h1>' + generate_name(element) + '</h1>');
+	file.write('<hr/>');
+	
+	documentation = parse_doxygen(element.get_doc())
+	if len(documentation) != 0:
+		file.write('<h2>Description:</h2>\n')
+		file.write(documentation)
+		file.write('<br/>\n')
+	
+	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct']:
+		for nameElement in ['namespace', 'class', 'struct', 'enum', 'union']:
+			listBase = element.get_all_sub_type(nameElement)
+			if len(listBase) == 0:
+				continue
+			file.write('<h2>' + nameElement + ':</h2>\n');
+			file.write('<ul>\n');
+			for elem in listBase:
+				file.write('<li>' + generate_link(elem['node']) + '</li>')
+			file.write('</ul>\n');
 		
-		file.write("<h2>Constructor and Destructor:</h2>\n")
-		file.write("<pre>\n");
-		listBaseConstructor = element.get_all_sub_type(['constructor'])
-		for elem in listBaseConstructor:
-			ret = write_methode(elem, namespaceStack, displayLen)
-			file.write(ret)
-		listBaseDestructor = element.get_all_sub_type(['destructor'])
-		for elem in listBaseDestructor:
-			ret = write_methode(elem, namespaceStack, displayLen)
-			file.write(ret)
-		file.write("</pre>\n");
-		file.write("<br/>\n")
+	# calculate element size :
+	listBase = element.get_all_sub_type(['methode', 'constructor', 'destructor'])
+	displayLen = calculate_methode_size(listBase)
+	
+	if    element.get_node_type() == 'class' \
+	   or element.get_node_type() == 'struct':
 		
-		file.write("<h2>Synopsis:</h2>\n")
-		file.write("<pre>\n");
+		if len(element.get_all_sub_type(['constructor', 'destructor'])) != 0:
+			file.write('<h2>Constructor and Destructor:</h2>\n')
+			file.write('<pre>\n');
+			listBaseConstructor = element.get_all_sub_type(['constructor'])
+			for elem in listBaseConstructor:
+				ret = write_methode(elem, namespaceStack, displayLen)
+				file.write(ret)
+			listBaseDestructor = element.get_all_sub_type(['destructor'])
+			for elem in listBaseDestructor:
+				ret = write_methode(elem, namespaceStack, displayLen)
+				file.write(ret)
+			file.write('</pre>\n');
+			file.write('<br/>\n')
+		
+	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct']:
 		listBaseMethode = element.get_all_sub_type(['methode'])
-		displayLen = calculate_methode_size(listBaseMethode)
-		for elem in listBaseMethode:
-			ret = write_methode(elem, namespaceStack, displayLen)
-			file.write(ret)
-		file.write("</pre>\n")
-		file.write("<br/>\n")
+		if len(listBaseMethode) != 0:
+			file.write('<h2>Synopsis:</h2>\n')
+			file.write('<pre>\n');
+			displayLen = calculate_methode_size(listBaseMethode)
+			for elem in listBaseMethode:
+				ret = write_methode(elem, namespaceStack, displayLen)
+				file.write(ret)
+			file.write('</pre>\n')
+			file.write('<br/>\n')
+	
+	# generate herirage list :
+	if element.get_node_type() == 'class':
+		parent = element.get_parents()
+		child = None
+		if parent != []:
+			file.write('<h2>Object Hierarchy:<h2>\n')
+			file.write('<pre>\n');
+			file.write(str(parent));
+			file.write('</pre>\n');
 		
-		file.write("<h2>Description:</h2>\n")
-		
+	
+	if len(listBase) != 0:
 		# display all functions :
-		file.write("<h2>Detail:<h2>\n")
-		for element in listBase:
-			file.write('<h3><a id="' + str(element['node'].get_uid()) + '">' + element['node'].get_name() + '</a></h3>')
-			file.write("<pre>\n");
-			file.write(write_methode(element, namespaceStack, link = False))
-			file.write("</pre>\n");
+		file.write('<h2>Detail:<h2>\n')
+		for subElement in listBase:
+			file.write('<h3><a id="' + str(subElement['node'].get_uid()) + '">' + subElement['node'].get_name() + '</a></h3>')
+			file.write('<pre>\n');
+			file.write(write_methode(subElement, namespaceStack, link = False))
+			file.write('</pre>\n');
 			#debug.info(str(element['node'].get_doc()));
-			file.write(parse_doxygen(element['node'].get_doc()));
-			file.write("<br/>\n");
-			file.write("<hr/>\n");
+			file.write(parse_doxygen(subElement['node'].get_doc()));
+			file.write('<br/>\n');
+			file.write('<hr/>\n');
 		
-	elif element.get_node_type() == 'struct':
+	if element.get_node_type() == 'enum':
+		myElementList = element.get_enum_list()
+		elementSize = 0
+		for enumElement in myElementList:
+			tmpLen = len(enumElement['name'])
+			if tmpLen > elementSize:
+				elementSize = tmpLen
+		
+		
+		file.write('<h2>Value list</h2>\n')
+		if len(myElementList) < 9:
+			nbColumn = 1
+		else:
+			nbColumn = 3
+		
+		file.write('<ul>\n');
+		file.write('<table class="enumeration-list"><tr>\n');
+		nbCol = 0
+		isFirst = True
+		for enumElement in myElementList:
+			if isFirst == True:
+				file.write('<tr>\n');
+			isFirst = False
+			file.write('<td><a href="#' + enumElement['name'] + '">' + enumElement['name'] + '</a></td>')
+			nbCol += 1
+			if nbCol == nbColumn:
+				nbCol = 0
+				file.write('</tr>\n');
+				isFirst = True
+		if isFirst == False:
+			file.write('</tr>\n');
+		file.write('</table>\n');
+		file.write('</ul>\n');
+		
+		file.write("<h2>Detail:<h2>\n")
+		isFirst = True
+		for enumElement in myElementList:
+			if isFirst == False:
+				file.write('<hr/>\n');
+			isFirst = False
+			file.write('<a id="' + enumElement['name'] + '"/>' + enumElement['name'])
+			file.write('<pre>\n')
+			file.write(enumElement['name'] + white_space(elementSize-len(enumElement['name'])) + ' = <span class="code-type">' + enumElement['value'] + '<span>')
+			file.write('</pre>\n')
+			if enumElement['doc'] != "":
+				file.write(parse_doxygen(enumElement['doc']));
+		
+	if element.get_node_type() == 'union':
 		file.write("TODO : the page ...");
-	elif element.get_node_type() == 'enum':
-		file.write("TODO : the page ...");
-	elif element.get_node_type() == 'union':
-		file.write("TODO : the page ...");
-	else:
-		# not in a specific file ...
-		debug.warning("might not appear here :'" + element.get_node_type() + "' = '" + element.get_name() + "'")
-		pass
+	
 	file.write(footer)
 	file.close();
 	

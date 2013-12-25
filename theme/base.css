@@ -95,7 +95,10 @@ pre {
 	border-radius: 4px;
 }
 
-
+.enumeration-list td {
+	padding-left:10px;
+	padding-right:10px;
+}
 
 .code-function {
 	text-decoration:none;

@@ -24,6 +24,8 @@ class Node():
 		self.lineNumber = lineNumber
 		self.subList = None
 		self.access = None
+		# namespace elements : (set when all element are parsed ...
+		self.namespace = []
 	
 	def to_str(self):
 		return ""
@@ -135,7 +137,50 @@ class Node():
 			# TODO : Sorted the list ...
 			pass
 		return ret
-
+	
+	def set_namespace(self, hierarchy = []):
+		# store namespaces:
+		self.namespace = hierarchy
+		# set for all sub elements ...
+		if self.subList == None:
+			return
+		if self.nodeType in ['class', 'namespace', 'struct']:
+			for element in self.subList:
+				hierarchy.append(self.get_name())
+				element['node'].set_namespace(hierarchy)
+				hierarchy.pop()
+		elif self.nodeType in ['library', 'application']:
+			for element in self.subList:
+				element['node'].set_namespace()
+	
+	def get_namespace(self):
+		return self.namespace
+	
+	def find(self, list):
+		debug.info("find : " + str(list) + " in " + self.nodeType)
+		if len(list) == 0:
+			return None
+		if self.nodeType in ['library', 'application']:
+			if self.subList == None:
+				return None
+			for element in self.subList:
+				ret = element['node'].find(list)
+				if ret != None:
+					return ret
+			return None
+		if list[0] != self.name:
+			return None
+		if self.nodeType not in ['class', 'namespace', 'struct']:
+			return self
+		tmpList = list[1:]
+		if self.subList == None:
+			return None
+		for element in self.subList:
+			ret = element['node'].find(tmpList)
+			if ret != None:
+				return ret
+		return None
+	
 
 
 class MainNode(Node):

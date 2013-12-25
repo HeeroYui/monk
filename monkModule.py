@@ -8,6 +8,7 @@ import monkTools as tools
 import monkNode as Node
 import monkParse as Parse
 import monkHtml
+import re
 
 class Module:
 	##
@@ -104,6 +105,9 @@ class Module:
 					fileCompleteName = os.path.join(root, filename)
 					debug.debug("    Find a file : '" + fileCompleteName + "'")
 					self.add_file(fileCompleteName)
+		# all file is parset ==> now we create the namespacing of ll elements:
+		self.structureLib.set_namespace()
+		
 		# display the hierarchie of all the class and namespace ...
 		#self.structureLib.debug_display()
 		if self.pathGlobalDoc != "":
@@ -356,3 +360,15 @@ def list_all_module_with_desc():
 def get_link_type(type):
 	return ""
 
+def get_element_with_name(type):
+	global moduleList
+	debug.info("try find : " + str(type) + "  ")
+	ret = re.sub(r'::', ':', type)
+	ret = ret.split(":")
+	for mod in moduleList:
+		element = mod['node'].get_base_doc_node().find(ret)
+		if element != None:
+			debug.info("we find : " + type + " = " + str(ret) + "   " + str(element))
+			return element
+	debug.info("we not find : " + type + " = " + str(ret))
+	return None

@@ -39,7 +39,25 @@ class Enum(Node.Node):
 			if len(element) > 2:
 				if element[1] == '=':
 					for tmp in element[2:]:
-						value += tmp
-			self.listElement.append({'name' : element[0], 'value' : value})
+						value = tmp
+			if value == "":
+				if self.baseValue == None:
+					value = "???"
+				else:
+					value = str(self.baseValue)
+					self.baseValue += 1
+			else:
+				try:
+					tmpVal = int(value)
+					self.baseValue = tmpVal + 1
+				except:
+					debug.debug("can not parse enum value : '" + value + "'")
+					self.baseValue = None
+			self.listElement.append({'name' : element[0], 'value' : value, 'doc' : ""})
 		
 		debug.verbose("enum list : " + str(self.listElement))
+	
+	def get_enum_list(self):
+		return self.listElement
+
+
