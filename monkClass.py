@@ -72,6 +72,19 @@ class Class(Node.Node):
 		#heritage = parent.
 		cparent.append(self.inherit[0])
 		return cparent
-
+	
+	def get_whith_specific_parrent(self, parrentName):
+		ret = []
+		for parrent in self.inherit:
+			if parrentName == self.inherit[0]['class']:
+				ret.append(self.get_displayable_name())
+		# set for all sub elements ...
+		if self.subList != None:
+			for element in self.subList:
+				tmpRet = element['node'].get_whith_specific_parrent(parrentName)
+				if len(tmpRet) != 0:
+					for tmp in tmpRet:
+						ret.append(tmp)
+		return ret
 
 

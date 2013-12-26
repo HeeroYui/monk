@@ -6,25 +6,8 @@ import monkTools
 import re
 import codeBB
 import collections
-
-global_class_link = {
-	"std::string"    : "http://www.cplusplus.com/reference/string/string/",
-	"std::u16string" : "http://www.cplusplus.com/reference/string/u16string/",
-	"std::u32string" : "http://www.cplusplus.com/reference/string/u32string/",
-	"std::wstring"   : "http://www.cplusplus.com/reference/string/wstring/",
-	"std::vector"    : "http://www.cplusplus.com/reference/vector/vector/"
-	}
-
-def display_color(val):
-	# storage keyword :
-	val = re.sub(r'(inline|const|class|virtual|private|public|protected|friend|const|extern|auto|register|static|volatile|typedef|struct|union|enum)',
-	             r'<span class="code-storage-keyword">\1</span>',
-	             val)
-	# type :
-	val = re.sub(r'(bool|BOOL|char(16_t|32_t)?|double|float|u?int(8|16|32|64|128)?(_t)?|long|short|signed|size_t|unsigned|void|(I|U)(8|16|32|64|128))',
-	             r'<span class="code-type">\1</span>',
-	             val)
-	return val
+import monkModule as module
+import monkNode as node
 
 
 def display_doxygen_param(comment, input, output):
@@ -134,18 +117,18 @@ def generate_link(element):
 def calculate_methode_size(list):
 	returnSize = 0;
 	methodeSize = 0;
+	haveVirtual = False
 	for element in list:
-		retType = ""
 		if element['node'].get_virtual() == True:
-			retType += 'virtual '
-		retType += element['node'].get_return_type().to_str()
+			haveVirtual = True
+		retType = element['node'].get_return_type().to_str()
 		tmpLen = len(retType)
 		if returnSize < tmpLen:
 			returnSize = tmpLen
 		tmpLen = len(element['node'].get_name())
 		if methodeSize < tmpLen:
 			methodeSize = tmpLen
-	return [returnSize, methodeSize]
+	return [returnSize, methodeSize, haveVirtual]
 
 
 def write_methode(element, namespaceStack, displaySize = None, link = True):
@@ -161,18 +144,20 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 			ret += '+ '
 		else:
 			ret += '  '
-	retType = ""
+	else:
+		ret += '  '
+	
 	if element['node'].get_virtual() == True:
-		retType += 'virtual '
-	retType += element['node'].get_return_type().to_str()
-	if retType != "":
-		retType2 = re.sub("<","&lt;", retType)
-		retType2 = re.sub(">","&gt;", retType2)
-		retType2 = display_color(retType2)
-		ret += retType2
+		ret += module.display_color('virtual') + ' '
+	elif displaySize[2] == True:
+		ret += '        '
+	
+	raw, decorated = element['node'].get_return_type().to_str_decorated()
+	if raw != "":
+		ret += decorated
 		ret += " "
-		retType += " "
-	ret += white_space(displaySize[0] - len(retType)+1)
+		raw += " "
+	ret += white_space(displaySize[0] - len(raw)+1)
 	name = element['node'].get_name()
 	if link == True:
 		ret += '<a class="code-function" href="#' + str(element['node'].get_uid()) + '">' + name + '</a>'
@@ -184,9 +169,13 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 	for param in listParam:
 		if first == False:
 			ret += ',<br/>'
+			if displaySize[2] == True:
+				ret += '        '
 			ret += white_space(displaySize[0] + displaySize[1] +5)
 		first = False
-		retParam = display_color(param.get_type().to_str())
+		typeNoDecoration, typeDecorated = param.get_type().to_str_decorated()
+		#retParam = module.display_color(param.get_type().to_str())
+		retParam = typeDecorated
 		if retParam != "":
 			ret += retParam
 			ret += " "
@@ -195,7 +184,7 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 	if element['node'].get_virtual_pure() == True:
 		ret += ' = 0'
 	if element['node'].get_constant() == True:
-		ret += display_color(' const')
+		ret += module.display_color(' const')
 	
 	ret += ';'
 	ret += '<br/>'
@@ -216,6 +205,7 @@ def generate_stupid_index_page(outFolder, header, footer, myLutinDoc):
 	file.close();
 
 def generate_page(outFolder, header, footer, element):
+	currentPageSite = element.get_doc_website_page()
 	namespaceStack = element.get_namespace()
 	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union']:
 		listBase = element.get_all_sub_type(['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union'])
@@ -282,16 +272,14 @@ def generate_page(outFolder, header, footer, element):
 	if element.get_node_type() == 'class':
 		parent = element.get_parents()
 		debug.verbose("parrent of " + element.get_name() + " : " + str(parent))
-		child = None
-		if len(parent) != 0:
+		child = module.get_whith_specific_parrent(element.get_displayable_name(), )
+		if    len(parent) != 0 \
+		   or len(child) != 0:
 			file.write('<h2>Object Hierarchy:<h2>\n')
 			file.write('<pre>\n');
 			level = 0
-			revertList = []
-			for elemmm in reversed(parent):
-				revertList.append(elemmm)
-			revertList.append({'access':'me', 'class':element.get_displayable_name()})
-			for parentElem in revertList:
+			parent.append({'access':'me', 'class':element.get_displayable_name()})
+			for parentElem in parent:
 				access = ""
 				if parentElem['access'] == 'public':
 					access = "+"
@@ -299,11 +287,47 @@ def generate_page(outFolder, header, footer, element):
 					access = "#"
 				elif parentElem['access'] == 'private':
 					access = "-"
-				file.write(white_space(level * 4))
+				tmpLen = level * 7
+				if tmpLen > 0:
+					tmpLen -= 5
+				file.write(white_space(tmpLen))
 				if level != 0:
 					file.write('+--> ')
-				file.write(access + parentElem['class'] + '<br/>')
+				file.write(access)
+				if parentElem['access'] == 'me':
+					file.write(parentElem['class'])
+				else:
+					classPointer = module.get_element_with_name(parentElem['class'])
+					if classPointer != None:
+						link = classPointer.get_doc_website_page()
+						link = node.get_doc_website_page_relative(currentPageSite, link)
+						file.write('<a href="' + link + '">')
+					file.write(parentElem['class'])
+					if classPointer != None:
+						file.write('</a>')
+				
+				file.write('<br/>')
 				level += 1
+			# all child not in application :
+			for childElem in child:
+				tmpLen = level * 7
+				if tmpLen > 0:
+					tmpLen -= 5
+				file.write(white_space(tmpLen))
+				if level != 0:
+					file.write('+--> ')
+				classPointer = module.get_element_with_name(childElem)
+				if classPointer != None:
+					link = classPointer.get_doc_website_page()
+					link = node.get_doc_website_page_relative(currentPageSite, link)
+					file.write('<a href="' + link + '">')
+				file.write(childElem)
+				if classPointer != None:
+					file.write('</a>')
+				
+				file.write('<br/>')
+				
+			
 			file.write('</pre>\n');
 		
 	

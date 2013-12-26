@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import monkDebug as debug
+import monkModule as module
 
 accessList = ['private', 'protected', 'public']
 
@@ -52,16 +53,53 @@ class Node():
 	
 	def get_doc(self):
 		#debug.info(str(self.doc))
-		if self.documenatationCode== None:
+		if len(self.documenatationCode) > 0:
+			ret = ""
+			isFirst = True
+			for req in self.documenatationCode:
+				if isFirst == False:
+					ret += '\n'
+				isFirst = False
+				ret += req
+			return ret
+		
+		#try to get previous element : 
+		if len(self.namespace) == 0:
 			return ""
-		ret = ""
+		parent = ""
 		isFirst = True
-		for req in self.documenatationCode:
+		for namesapace in self.namespace:
 			if isFirst == False:
-				ret += '\n'
+				parent += "::"
 			isFirst = False
-			ret += req
-		return ret
+			parent += namesapace
+		element = module.get_element_with_name(parent)
+		if element == None:
+			return ""
+		
+		if element.get_node_type() != 'class':
+			return ""
+		
+		parents = element.get_parents()
+		if len(parents) == 0:
+			return ""
+		
+		for myParent in reversed(parents):
+			element = module.get_element_with_name(myParent['class'])
+			if element == None:
+				continue
+			heveMethode, pointerMethode = element.have_methode(self.name)
+			if heveMethode == False:
+				continue
+			if len(pointerMethode.documenatationCode) != 0:
+				return pointerMethode.get_doc()
+		
+		return ""
+	
+	def get_lib_name(self):
+		if self.moduleLink == None:
+			return None
+		return self.moduleLink.get_base_doc_node().get_name()
 	
 	def debug_display(self, level=0, access = None):
 		if access == 'private':
@@ -150,7 +188,8 @@ class Node():
 		if self.moduleLink == None:
 			return ""
 		ret = self.moduleLink.get_website()
-		ret += "/"
+		if ret[-1] != '/':
+			ret += '/'
 		ret += self.get_node_type()
 		ret += "_"
 		for name in self.namespace:
@@ -237,9 +276,52 @@ class Node():
 				return ret
 		return None
 	
+	
+	def get_whith_specific_parrent(self, parrentName):
+		ret = []
+		# set for all sub elements ...
+		if self.subList != None:
+			for element in self.subList:
+				tmpRet = element['node'].get_whith_specific_parrent(parrentName)
+				if len(tmpRet) != 0:
+					for tmp in tmpRet:
+						ret.append(tmp)
+		return ret
+	
+	def have_methode(self, methodeName):
+		if self.subList != None:
+			for element in self.subList:
+				if element['node'].get_node_type() != 'methode':
+					continue
+				if element['access'] == "private":
+					continue
+				if element['node'].get_virtual() == False:
+					continue
+				if element['node'].get_name() == methodeName:
+					return [True, element['node']]
+		return [False, None]
 
 
 class MainNode(Node):
 	def __init__(self, type="library", name=""):
 		Node.__init__(self, type, name)
 		self.subList = []
+
+def get_doc_website_page_relative(base, dest):
+	realBase = ""
+	tmpBase = ""
+	lastFolder = ""
+	for element in base:
+		tmpBase += element
+		if element == '/':
+			realBase += tmpBase
+			lastFolder = tmpBase
+			tmpBase = ""
+	if dest[:len(realBase)] == realBase:
+		return dest[len(realBase):]
+	#debug.info(dest[:len(realBase)-len(lastFolder)] + "==" + realBase[:-len(lastFolder)])
+	if dest[:len(realBase)-len(lastFolder)] == realBase[:-len(lastFolder)]:
+		return '../' + dest[len(realBase)-len(lastFolder):]
+	return dest
+
+

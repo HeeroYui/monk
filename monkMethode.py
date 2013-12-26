@@ -113,6 +113,34 @@ class Methode(Node.Node):
 			ret += " const"
 		return ret
 	
+	def to_str_decorated(self):
+		ret = ""
+		retDecorated = ""
+		if self.virtual == True:
+			ret          += "virtual "
+			retDecorated += module.display_color("virtual") + " "
+		if self.static == True:
+			ret += "static "
+			retDecorated += module.display_color("static") + " "
+		if self.inline == True:
+			ret += "inline "
+			retDecorated += module.display_color("inline") + " "
+		raw, decorated = self.returnType.to_str_decorated()
+		ret += raw
+		retDecorated += decorated
+		ret += " "
+		ret += self.name
+		ret += "("
+		# ...
+		ret += ")"
+		if self.virtualPure == True:
+			ret += " = 0"
+			retDecorated += " = 0"
+		if self.const == True:
+			ret += " const"
+			retDecorated += " " + module.display_color("const")
+		return [ret, retDecorated]
+	
 	##
 	## @brief Get the status of the virtual function ( virtual XXX(...);)
 	## @return True if vitual is present, False otherwise

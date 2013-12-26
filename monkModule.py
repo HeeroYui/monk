@@ -29,7 +29,6 @@ class Module:
 		# Name of the module
 		self.name=moduleName
 		self.listDocFile = []
-		self.structureLib = Node.MainNode("library", moduleName)
 		self.listTutorialFile = []
 		self.webSite = ""
 		self.pathParsing = ""
@@ -38,13 +37,15 @@ class Module:
 		self.title = moduleName + " Library"
 		self.styleHtml = ""
 		## end of basic INIT ...
-		if    moduleType == 'APPLICATION' \
-		   or moduleType == 'LIBRARY':
-			self.type=moduleType
+		if moduleType.upper() == 'APPLICATION':
+			self.type = 'application'
+		elif moduleType.upper() == 'LIBRARY':
+			self.type = "library"
 		else :
 			debug.error('for module "%s"' %moduleName)
 			debug.error('    ==> error : "%s" ' %moduleType)
 			raise 'Input value error'
+		self.structureLib = Node.MainNode(self.type, moduleName)
 		self.originFile = file;
 		self.originFolder = tools.get_current_path(self.originFile)
 		
@@ -172,7 +173,7 @@ class Module:
 	def generate(self):
 		debug.info('Generate documantation code : ' + self.name)
 		destFolder = "out/doc/" + self.name + '/'
-		#tools.remove_folder_and_sub_folder(target.get_doc_folder(self.name));
+		tools.remove_folder_and_sub_folder(destFolder);
 		if monkHtml.generate(self, destFolder) == False:
 			debug.warning("Generation Documentation ==> return an error for " + self.name)
 		
@@ -219,99 +220,13 @@ class Module:
 		debug.verbose("find childs : " + str(list))
 		return list
 	
-	##
-	## @brief trnsform the classname in a generic link (HTML)
-	## @param[in] elementName Name of the class requested
-	## @return [className, link]
-	##
-	def get_class_link(self, elementName):
-		if    elementName == "const" \
-		   or elementName == "enum" \
-		   or elementName == "void" \
-		   or elementName == "char" \
-		   or elementName == "char32_t" \
-		   or elementName == "float" \
-		   or elementName == "double" \
-		   or elementName == "bool" \
-		   or elementName == "int8_t" \
-		   or elementName == "uint8_t" \
-		   or elementName == "int16_t" \
-		   or elementName == "uint16_t" \
-		   or elementName == "int32_t" \
-		   or elementName == "uint32_t" \
-		   or elementName == "int64_t" \
-		   or elementName == "uint64_t" \
-		   or elementName == "int" \
-		   or elementName == "T" \
-		   or elementName == "CLASS_TYPE" \
-		   or elementName[:5] == "std::" \
-		   or elementName[:6] == "appl::" \
-		   or elementName == "&" \
-		   or elementName == "*" \
-		   or elementName == "**":
-			return [elementName, ""]
-		if elementName in self.listClass.keys():
-			link = elementName.replace(":","_") + ".html"
-			return [elementName, link]
-		elif elementName in self.listEnum.keys():
-			link = elementName.replace(":","_") + ".html"
-			return [elementName, link]
-		#else:
-		#	return self.target.doc_get_link(elementName)
-		return [elementName, ""]
+	def get_whith_specific_parrent(self, name, appName=None):
+		if self.structureLib.get_node_type() == "library":
+			return self.structureLib.get_whith_specific_parrent(name)
+		if appName != self.structureLib.get_name():
+			return []
+		return self.structureLib.get_whith_specific_parrent(name)
 	
-	##
-	## @brief trnsform the classname in a generic link (HTML) (external access ==> from target)
-	## @param[in] elementName Name of the class requested
-	## @return [className, link]
-	##
-	def get_class_link_from_target(self, elementName, target):
-		# reject when auto call :
-		if self.target != None:
-			return [elementName, ""]
-		# search in local list :
-		if elementName in self.listClass.keys():
-			link = elementName.replace(":","_") + ".html"
-			if target.get_build_mode() == "debug":
-				return [elementName, "../" + self.moduleName + "/" + link]
-			elif self.webSite != "":
-				return [elementName, self.webSite + "/" + link]
-		elif elementName in self.listEnum.keys():
-			link = elementName.replace(":","_") + ".html"
-			if target.get_build_mode() == "debug":
-				return [elementName, "../" + self.moduleName + "/" + link]
-			elif self.webSite != "":
-				return [elementName, self.webSite + "/" + link]
-		# did not find :
-		return [elementName, ""]
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	##
-	## @brief Get link on a class or an enum in all the subclasses
-	## @param[in] name of the class
-	## @return [real element name, link on it]
-	##
-	def doc_get_link(self, target, elementName):
-		if self.documentation == None:
-			return [elementName, ""]
-		return self.documentation.get_class_link_from_target(elementName, target);
-	
-	def display(self, target):
-		print '-----------------------------------------------'
-		print ' package : "' + self.name + '"'
-		print '-----------------------------------------------'
-		print '    type:"%s"' %self.type
-		print '    file:"%s"' %self.originFile
-		print '    folder:"%s"' %self.originFolder
-		self.print_list('local_path',self.local_path)
 	
 
 moduleList=[]
@@ -375,5 +290,29 @@ def get_element_with_name(type):
 		if element != None:
 			debug.debug("we find : " + type + " = " + str(ret) + "   " + str(element))
 			return element
-	debug.warning("we not find : " + type + " = " + str(ret))
+	debug.debug("we not find : " + type + " = " + str(ret))
 	return None
+
+def get_whith_specific_parrent(name, appName=None):
+	global moduleList
+	ret = []
+	for mod in moduleList:
+		tmpRet = mod['node'].get_whith_specific_parrent(name, appName)
+		if len(tmpRet) != 0:
+			for tmp in tmpRet:
+				ret.append(tmp)
+	return ret
+
+
+
+def display_color(val):
+	# storage keyword :
+	val = re.sub(r'(inline|const|class|virtual|private|public|protected|friend|const|extern|auto|register|static|volatile|typedef|struct|union|enum)',
+	             r'<span class="code-storage-keyword">\1</span>',
+	             val)
+	# type :
+	val = re.sub(r'(bool|BOOL|char(16_t|32_t)?|double|float|u?int(8|16|32|64|128)?(_t)?|long|short|signed|size_t|unsigned|void|(I|U)(8|16|32|64|128))',
+	             r'<span class="code-type">\1</span>',
+	             val)
+	return val
+
