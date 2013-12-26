@@ -66,7 +66,7 @@ class Class(Node.Node):
 		parent = module.get_element_with_name(self.inherit[0]['class'])
 		cparent = []
 		if parent != None:
-			debug.info(" plop : " + self.name + " " + str(parent) + " " + parent.get_name())
+			#debug.info(" plop : " + self.name + " " + str(parent) + " " + parent.get_name())
 			cparent = parent.get_parents()
 			pass
 		#heritage = parent.

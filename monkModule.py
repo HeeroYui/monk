@@ -57,6 +57,9 @@ class Module:
 	def set_website(self, url):
 		self.webSite = url
 	
+	def get_website(self):
+		return self.webSite
+	
 	##
 	## @brief set the parsing folder
 	## @param[in] path New path to parse
@@ -105,8 +108,10 @@ class Module:
 					fileCompleteName = os.path.join(root, filename)
 					debug.debug("    Find a file : '" + fileCompleteName + "'")
 					self.add_file(fileCompleteName)
-		# all file is parset ==> now we create the namespacing of ll elements:
+		# all file is parset ==> now we create the namespacing of all elements:
 		self.structureLib.set_namespace()
+		self.structureLib.set_module_link(self)
+		#self.structureLib.complete_display()
 		
 		# display the hierarchie of all the class and namespace ...
 		#self.structureLib.debug_display()
@@ -362,13 +367,13 @@ def get_link_type(type):
 
 def get_element_with_name(type):
 	global moduleList
-	debug.info("try find : " + str(type) + "  ")
+	debug.verbose("try find : " + str(type) + "  ")
 	ret = re.sub(r'::', ':', type)
 	ret = ret.split(":")
 	for mod in moduleList:
 		element = mod['node'].get_base_doc_node().find(ret)
 		if element != None:
-			debug.info("we find : " + type + " = " + str(ret) + "   " + str(element))
+			debug.debug("we find : " + type + " = " + str(ret) + "   " + str(element))
 			return element
-	debug.info("we not find : " + type + " = " + str(ret))
+	debug.warning("we not find : " + type + " = " + str(ret))
 	return None

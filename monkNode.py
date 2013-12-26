@@ -26,6 +26,7 @@ class Node():
 		self.access = None
 		# namespace elements : (set when all element are parsed ...
 		self.namespace = []
+		self.moduleLink = None # this is a link on the main application node or library node (usefull to get the website ...)
 	
 	def to_str(self):
 		return ""
@@ -38,6 +39,13 @@ class Node():
 	
 	def get_name(self):
 		return self.name
+	
+	def get_displayable_name(self):
+		ret = ""
+		for namespace in self.namespace:
+			ret += namespace + "::"
+		ret += self.name
+		return ret
 	
 	def get_uid(self):
 		return self.uid
@@ -138,26 +146,71 @@ class Node():
 			pass
 		return ret
 	
-	def set_namespace(self, hierarchy = []):
-		# store namespaces:
-		self.namespace = hierarchy
+	def get_doc_website_page(self):
+		if self.moduleLink == None:
+			return ""
+		ret = self.moduleLink.get_website()
+		ret += "/"
+		ret += self.get_node_type()
+		ret += "_"
+		for name in self.namespace:
+			ret += name + "__"
+		ret += self.name
+		ret += '.html'
+		return ret
+	
+	def get_doc_website_page_local(self):
+		ret = self.get_node_type()
+		ret += "_"
+		for name in self.namespace:
+			ret += name + "__"
+		ret += self.name
+		ret += '.html'
+		return ret
+	
+	def set_module_link(self, module):
+		self.moduleLink = module
 		# set for all sub elements ...
 		if self.subList == None:
 			return
 		if self.nodeType in ['class', 'namespace', 'struct']:
 			for element in self.subList:
-				hierarchy.append(self.get_name())
+				element['node'].set_module_link(module)
+		elif self.nodeType in ['library', 'application']:
+			for element in self.subList:
+				element['node'].set_module_link(module)
+	
+	def set_namespace(self, hierarchy = []):
+		#debug.info('set namespace : ' + self.name + ' : ' + str(hierarchy))
+		# store namespaces:
+		for tmpName in hierarchy:
+			self.namespace.append(tmpName)
+		# set for all sub elements ...
+		if self.subList == None:
+			return
+		if self.nodeType in ['class', 'namespace', 'struct']:
+			for element in self.subList:
+				hierarchy.append(self.name)
 				element['node'].set_namespace(hierarchy)
+				#debug.info(" ==> " + str(element['node'].get_namespace()))
 				hierarchy.pop()
 		elif self.nodeType in ['library', 'application']:
 			for element in self.subList:
 				element['node'].set_namespace()
+				#debug.info(" ==> " + str(element['node'].get_namespace()))
 	
 	def get_namespace(self):
 		return self.namespace
 	
+	def complete_display(self):
+		debug.info(str(self.namespace) + ' : ' + self.name)
+		if self.subList == None:
+			return
+		for element in self.subList:
+			element['node'].complete_display()
+	
 	def find(self, list):
-		debug.info("find : " + str(list) + " in " + self.nodeType)
+		debug.verbose("find : " + str(list) + " in " + self.nodeType + "(" + self.name + ")")
 		if len(list) == 0:
 			return None
 		if self.nodeType in ['library', 'application']:
@@ -170,9 +223,12 @@ class Node():
 			return None
 		if list[0] != self.name:
 			return None
-		if self.nodeType not in ['class', 'namespace', 'struct']:
-			return self
 		tmpList = list[1:]
+		if len(tmpList) == 0:
+			return self
+		elif self.nodeType not in ['class', 'namespace', 'struct']:
+			# have other sub element and other elemetn than upper can have sub element ...
+			return None
 		if self.subList == None:
 			return None
 		for element in self.subList:

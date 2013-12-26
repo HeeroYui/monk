@@ -118,11 +118,7 @@ def generate_menu(element, level=1):
 	return ret
 
 def generate_html_page_name(element):
-	namespaceStack = element.get_namespace()
-	link = ""
-	for name in namespaceStack:
-		link += name + "__"
-	return element.get_node_type() + "_" + link + element.get_name() + '.html'
+	return element.get_doc_website_page_local()
 
 def generate_name(element):
 	namespaceStack = element.get_namespace()
@@ -285,11 +281,29 @@ def generate_page(outFolder, header, footer, element):
 	# generate herirage list :
 	if element.get_node_type() == 'class':
 		parent = element.get_parents()
+		debug.verbose("parrent of " + element.get_name() + " : " + str(parent))
 		child = None
-		if parent != []:
+		if len(parent) != 0:
 			file.write('<h2>Object Hierarchy:<h2>\n')
 			file.write('<pre>\n');
-			file.write(str(parent));
+			level = 0
+			revertList = []
+			for elemmm in reversed(parent):
+				revertList.append(elemmm)
+			revertList.append({'access':'me', 'class':element.get_displayable_name()})
+			for parentElem in revertList:
+				access = ""
+				if parentElem['access'] == 'public':
+					access = "+"
+				elif parentElem['access'] == 'protected':
+					access = "#"
+				elif parentElem['access'] == 'private':
+					access = "-"
+				file.write(white_space(level * 4))
+				if level != 0:
+					file.write('+--> ')
+				file.write(access + parentElem['class'] + '<br/>')
+				level += 1
 			file.write('</pre>\n');
 		
 	
