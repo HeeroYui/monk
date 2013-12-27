@@ -17,7 +17,7 @@ class Node():
 		global genericUID
 		genericUID+=1
 		self.uid = genericUID
-		self.documenatationCode = documentation
+		self.documenatationCode = []
 		self.nodeType = type
 		self.name = name
 		self.doc = None
@@ -28,6 +28,9 @@ class Node():
 		# namespace elements : (set when all element are parsed ...
 		self.namespace = []
 		self.moduleLink = None # this is a link on the main application node or library node (usefull to get the website ...)
+		self.hiddenRequest = False # @not-in-doc
+		self.previousRequest = False # @previous
+		self.add_doc(documentation)
 	
 	def to_str(self):
 		return ""
@@ -40,6 +43,22 @@ class Node():
 	
 	def get_name(self):
 		return self.name
+	
+	def add_doc(self, doc):
+		for element in doc:
+			self.documenatationCode.append(element)
+			if element.find("@not-in-doc") != -1 :
+				self.hiddenRequest = True
+			if element.find("@previous") != -1 :
+				self.previousRequest = True
+			
+	
+	def get_request_hidden(self):
+		return self.hiddenRequest
+	
+	def get_request_in_previous(self):
+		return self.previousRequest
+	
 	
 	def get_displayable_name(self):
 		ret = ""
@@ -62,7 +81,8 @@ class Node():
 				isFirst = False
 				ret += req
 			return ret
-		
+		if self.nodeType not in ['methode']:
+			return ""
 		#try to get previous element : 
 		if len(self.namespace) == 0:
 			return ""

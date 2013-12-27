@@ -83,6 +83,11 @@ def transcode(value):
 	               value,
 	               flags=re.DOTALL)
 	
+	value = re.sub(r'\[note\](.*?)\[/note\]',
+	               r'<br/><b>Note:</b><pre>\1</pre>',
+	               value,
+	               flags=re.DOTALL)
+	
 	value = re.sub(r'____(.*?)\n',
 	               r'<hr>',
 	               value,

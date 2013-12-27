@@ -11,20 +11,27 @@ import monkNode as node
 
 
 def display_doxygen_param(comment, input, output):
-	data = "<b>Parameter"
+	data = '<tr>'
+	data = '<td>'
+	data += "<b>Parameter"
 	if input == True:
 		data += " [input]"
 	if output == True:
 		data += " [output]"
-	data += ":</b> "
+	data += ":</b>"
+	data += '</td>'
 	#extract first element:
 	val = comment.find(" ")
 	var = comment[:val]
 	endComment = comment[val:]
+	data += '<td>'
 	# TODO : Check if it exist in the parameter list ...
-	data += "<span class=\"code-argument\">" + var + "</span> " + endComment
-	
-	data += "<br/>"
+	data += "<span class=\"code-argument\">" + var + "</span> "
+	data += '</td>'
+	data += '<td>'
+	data += codeBB.transcode(endComment)
+	data += '</td>'
+	data += '</tr>\n'
 	return data
 
 
@@ -40,8 +47,8 @@ def parse_doxygen(data) :
 			# nothing to do : Nomale case of the first \n
 			None
 		elif element[:6] == "brief ":
-			data2 += element[6:]
-			data2 += "<br/>"
+			data2 += codeBB.transcode(element[6:])
+			data2 += '<br/>'
 	
 	for element in streams:
 		if    element[:1] == "\n" \
@@ -49,11 +56,12 @@ def parse_doxygen(data) :
 			# nothing to do : Nomale case of the first \n
 			None
 		elif element[:5] == "note ":
-			data2 += "<b>Notes:</b> "
-			data2 += element[5:]
-			data2 += "<br/> "
+			data2 += '<b>Note:</b> '
+			data2 += codeBB.transcode(element[5:])
+			data2 += '<br/> '
 	
 	data3 = ''
+	dataReturn = ''
 	for element in streams:
 		if    element[:1] == "\n" \
 		   or element[:2] == "\n\n":
@@ -69,13 +77,22 @@ def parse_doxygen(data) :
 		elif element[:6] == "param ":
 			data3 += display_doxygen_param(element[6:], False, False)
 		elif element[:7] == "return ":
-			data3 += "<b>Return:</b> "
-			data3 += element[7:]
-			data3 += "<br/>"
-	if data3 != '':
-		data2 += "<ul>\n"
+			if dataReturn != "":
+				dataReturn += '<br/>'
+			dataReturn += element[7:]
+	if    data3 != '' \
+	   or dataReturn != '':
+		data2 += '<ul>\n'
+		data2 += '<table class="parameter-list">\n'
 		data2 += data3
-		data2 += "</ul>\n"
+		if dataReturn != "":
+			data2 += '<tr><td>'
+			data2 += '<b>Return: </b>'
+			data2 += '</td><td></td><td>'
+			data2 += codeBB.transcode(dataReturn)
+			data2 += '</td></tr>'
+		data2 += '</table>\n'
+		data2 += '</ul>\n'
 	return data2
 
 def white_space(size) :
@@ -135,6 +152,8 @@ def calculate_methode_size(list):
 
 
 def write_methode(element, namespaceStack, displaySize = None, link = True):
+	if element['node'].get_request_hidden() == True:
+		return
 	if displaySize == None:
 		displaySize = calculate_methode_size([element])
 	ret = ""
@@ -337,15 +356,34 @@ def generate_page(outFolder, header, footer, element):
 	if len(listBase) != 0:
 		# display all functions :
 		file.write('<h2>Detail:</h2>\n')
+		allDetailDoc = ""
+		lastDoc = ""
 		for subElement in listBase:
-			file.write('<h3><a id="' + str(subElement['node'].get_uid()) + '">' + subElement['node'].get_name() + '</a></h3>')
-			file.write('<pre>\n');
-			file.write(write_methode(subElement, namespaceStack, link = False))
-			file.write('</pre>\n');
-			#debug.info(str(element['node'].get_doc()));
-			file.write(parse_doxygen(subElement['node'].get_doc()));
-			file.write('<br/>\n');
-			file.write('<hr/>\n');
+			file.write('<a id="' + str(subElement['node'].get_uid()) + '"/>')
+			if     lastDoc != "" \
+			   and subElement['node'].get_request_in_previous() == True:
+				allDetailDoc += write_methode(subElement, namespaceStack, link = False)
+			else:
+				if lastDoc != "":
+					allDetailDoc += '</pre>\n'
+					allDetailDoc += lastDoc
+					allDetailDoc += '<br/>\n'
+					allDetailDoc += '<hr/>\n'
+					file.write(allDetailDoc);
+					allDetailDoc = ""
+					lastDoc = ""
+				allDetailDoc += '<h3>' + subElement['node'].get_name() + '</h3>'
+				allDetailDoc += '<pre>\n'
+				allDetailDoc += write_methode(subElement, namespaceStack, link = False)
+				lastDoc = parse_doxygen(subElement['node'].get_doc()) + '\n'
+		if lastDoc != "":
+			allDetailDoc += '</pre>\n'
+			allDetailDoc += lastDoc
+			allDetailDoc += '<br/>\n'
+			allDetailDoc += '<hr/>\n'
+			file.write(allDetailDoc);
+			allDetailDoc = ""
+			lastDoc = ""
 		
 	if element.get_node_type() == 'enum':
 		myElementList = element.get_enum_list()
@@ -420,12 +458,71 @@ def generate(myLutinDoc, outFolder) :
 	genericHeader += '<body>\n'
 	genericHeader += '	<div class="navbar navbar-fixed-top">\n'
 	genericHeader += '		<div class="container">\n'
-	genericHeader += '			<h1>' + myDoc.get_name() + ' Library</h1>\n'
+	if myDoc.get_node_type() == 'library':
+		genericHeader += '			<h1><a href="index.html">' + myDoc.get_name() + ' library</a></h1>\n'
+	else:
+		genericHeader += '			<h1><a href="index.html">' + myDoc.get_name() + '</a></h1>\n'
+	genericHeader += '<h3>API:</h3>'
 	genericHeader += '			<div id="menu">\n'
 	#genericHeader += '				<h2>' + myDoc.moduleName + '</h2>\n'
 	genericHeader += generate_menu(myDoc)
 	#genericHeader += '				<h3> </h3>\n'
 	genericHeader += '			</div>\n'
+	# TODO : add Generic doc main point.
+	if len(myLutinDoc.listDocFile) > 0:
+		genericHeader += '<h3>Documentation:</h3>'
+		genericHeader += '<div id="menu">\n'
+		for docInputName,outpath in myLutinDoc.listDocFile:
+			outputFileName = outFolder + "/" + outpath.replace('/','_') +".html"
+			outputFileName = outputFileName.split('/')[-1]
+			name = outputFileName.split('_')[-1][:-5]
+			if name == "index":
+				continue
+			genericHeader += '<ul class="niveau1">'
+			genericHeader += '<li><a href="' + outputFileName + '">' + name + '</a></li>\n'
+			genericHeader += '</ul>'
+		genericHeader += '</div>\n'
+	# TODO : add Tutorial doc main point.
+	if len(myLutinDoc.listTutorialFile) > 0:
+		genericHeader += '<h3>Tutorials:</h3>'
+		genericHeader += '<div id="menu">\n'
+		for docInputName,outpath in myLutinDoc.listTutorialFile:
+			outputFileName = outFolder + "/" + outpath+".html"
+			outputFileName = outputFileName.split('/')[-1]
+			name = outputFileName.split('_')[-1][:-5]
+			if name == "index":
+				continue
+			genericHeader += '<ul class="niveau1">'
+			genericHeader += '<li><a href="tutorial_' + outputFileName + '">' + name + '</a></li>\n'
+			genericHeader += '</ul>'
+		genericHeader += '</div>\n'
+	
+	
+	localWebsite = myLutinDoc.get_website()
+	# add other libs entry point :
+	allModule = module.get_all_module()
+	if len(allModule) != 1:
+		genericHeader += '<br/>'
+		genericHeader += '<h3>Associate libraries:</h3>'
+		genericHeader += '<div id="menu">\n'
+		for modd in allModule:
+			if modd.type == 'application':
+				continue
+			if modd.name == myLutinDoc.name:
+				continue
+			genericHeader += '<ul class="niveau1">'
+			link = node.get_doc_website_page_relative(localWebsite, modd.get_website())
+			if link[-1] != "/":
+				link += "/"
+			genericHeader += '<li><a href="' + link + 'index.html">' + modd.name + '</a></li>\n'
+			genericHeader += '</ul>'
+		genericHeader += '</div>\n'
+	genericHeader += "<br/>\n"
+	genericHeader += "<br/>\n"
+	genericHeader += "<br/>\n"
+	genericHeader += "<br/>\n"
+	genericHeader += "<br/>\n"
+	genericHeader += "<br/>\n"
 	genericHeader += "		</div>\n"
 	genericHeader += "	</div>\n"
 	genericHeader += "	<div class=\"container\" id=\"content\">\n"
@@ -440,7 +537,7 @@ def generate(myLutinDoc, outFolder) :
 	# create the namespace index properties :
 	generate_page(outFolder, genericHeader, genericFooter, myDoc)
 	
-	for docInputName,outpath in myLutinDoc.listDocFile :
+	for docInputName,outpath in myLutinDoc.listTutorialFile :
 		debug.print_element("doc", myLutinDoc.name, "<==", docInputName)
 		outputFileName = outFolder + "/" + outpath.replace('/','_') +".html"
 		debug.debug("output file : " + outputFileName)
@@ -451,9 +548,9 @@ def generate(myLutinDoc, outFolder) :
 		outData = genericHeader + codeBB.transcode(inData) + genericFooter
 		monkTools.file_write_data(outputFileName, outData)
 	
-	for docInputName,outpath in myLutinDoc.listTutorialFile :
+	for docInputName,outpath in myLutinDoc.listDocFile :
 		debug.print_element("tutorial", myLutinDoc.name, "<==", docInputName)
-		outputFileName = outFolder + "/" + outpath+".html"
+		outputFileName = outFolder + outpath + ".html"
 		debug.debug("output file : " + outputFileName)
 		monkTools.create_directory_of_file(outputFileName)
 		inData = monkTools.file_read_data(docInputName)

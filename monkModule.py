@@ -126,9 +126,9 @@ class Module:
 					debug.verbose("    Find a doc file : '" + fileCompleteName + "'")
 					pathBase = fileCompleteName[len(self.pathGlobalDoc):len(fileCompleteName)-3]
 					if fileCompleteName[:len(tutorialPath)] == tutorialPath:
-						self.add_file_doc(fileCompleteName, pathBase)
-					else:
 						self.add_tutorial_doc(fileCompleteName, pathBase)
+					else:
+						self.add_file_doc(fileCompleteName, pathBase)
 	
 	##
 	## @brief Add a documentation file at the parsing system
