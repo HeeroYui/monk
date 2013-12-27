@@ -29,7 +29,10 @@ def display_doxygen_param(comment, input, output):
 
 
 def parse_doxygen(data) :
-	streams = data.split("@")
+	if '@' in data:
+		streams = data.split("@")
+	else:
+		streams = [ "brief " + data]
 	data2 = ''
 	for element in streams:
 		if    element[:1] == "\n" \
@@ -333,7 +336,7 @@ def generate_page(outFolder, header, footer, element):
 	
 	if len(listBase) != 0:
 		# display all functions :
-		file.write('<h2>Detail:<h2>\n')
+		file.write('<h2>Detail:</h2>\n')
 		for subElement in listBase:
 			file.write('<h3><a id="' + str(subElement['node'].get_uid()) + '">' + subElement['node'].get_name() + '</a></h3>')
 			file.write('<pre>\n');
@@ -378,13 +381,13 @@ def generate_page(outFolder, header, footer, element):
 		file.write('</table>\n');
 		file.write('</ul>\n');
 		
-		file.write("<h2>Detail:<h2>\n")
+		file.write("<h2>Detail:</h2>\n")
 		isFirst = True
 		for enumElement in myElementList:
 			if isFirst == False:
 				file.write('<hr/>\n');
 			isFirst = False
-			file.write('<a id="' + enumElement['name'] + '"/>' + enumElement['name'])
+			file.write('<h3><a id="' + enumElement['name'] + '"/>' + enumElement['name'] + '</h3>')
 			file.write('<pre>\n')
 			file.write(enumElement['name'] + white_space(elementSize-len(enumElement['name'])) + ' = <span class="code-type">' + enumElement['value'] + '<span>')
 			file.write('</pre>\n')

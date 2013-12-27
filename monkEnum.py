@@ -22,6 +22,7 @@ class Enum(Node.Node):
 		return "enum " + self.name + " { ... };"
 	
 	def enum_append(self, stack):
+		debug.verbose("enum : " + str(stack))
 		subList = []
 		tmp = []
 		for element in stack:
@@ -35,6 +36,17 @@ class Enum(Node.Node):
 		
 		#debug.verbose(" TODO : Need to append enum : " + str(subList))
 		for element in subList:
+			# extract comment:
+			filtered = []
+			comments = ""
+			for subs in element:
+				if subs[:5] == "//!< ":
+					if comments != "":
+						comments += "\n"
+					comments += subs[5:]
+				else:
+					filtered.append(subs)
+			element = filtered
 			value = ""
 			if len(element) > 2:
 				if element[1] == '=':
@@ -53,7 +65,7 @@ class Enum(Node.Node):
 				except:
 					debug.debug("can not parse enum value : '" + value + "'")
 					self.baseValue = None
-			self.listElement.append({'name' : element[0], 'value' : value, 'doc' : ""})
+			self.listElement.append({'name' : element[0], 'value' : value, 'doc' : comments})
 		
 		debug.verbose("enum list : " + str(self.listElement))
 	

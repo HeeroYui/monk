@@ -259,6 +259,7 @@ class parse_file():
 		
 		###### debug.info(headerFileStr)
 		self.stack = [] # token stack to find the namespace and the element name ...
+		self.previous = None
 		self.nameStack = [] # 
 		self.braceDepth = 0
 		self.braceDepthType = []
@@ -295,8 +296,15 @@ class parse_file():
 				# Do nothing for macro ==> many time not needed ...
 				continue
 			if tok.type == 'COMMENT_SINGLELINE_DOC_PREVIOUS':
-				#self.lastComment.append(tok.value)
-				pass
+				if self.previous_is('enum') == True:
+					if self.nameStack[-1] == ",":
+						self.nameStack[-1] = "//!< " + tok.value
+						self.nameStack.append(",")
+					else:
+						self.nameStack.append("//!< " + tok.value)
+				else:
+					#self.lastComment.append(tok.value)
+					pass
 			if tok.type == 'COMMENT_MULTILINE_DOC':
 				self.lastComment.append(tok.value)
 			if tok.type == 'COMMENT_SINGLELINE_DOC':
