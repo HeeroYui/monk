@@ -302,6 +302,9 @@ class parse_file():
 						self.nameStack.append(",")
 					else:
 						self.nameStack.append("//!< " + tok.value)
+				elif     self.previous != None \
+				     and self.previous.get_node_type() == 'variable':
+					self.previous.add_doc([tok.value])
 				else:
 					#self.lastComment.append(tok.value)
 					pass
@@ -336,6 +339,7 @@ class parse_file():
 					self.brace_type_push('unknow', self.nameStack)
 				self.stack = []
 				self.nameStack = []
+				self.lastComment = []
 			elif tok.type == 'CLOSE_BRACE':
 				if len(self.nameStack) != 0:
 					if self.previous_is('enum') == True:
@@ -415,7 +419,7 @@ class parse_file():
 						else:
 							# TODO : Check if it is true in all case : 
 							self.brace_type_append('variable', self.nameStack);
-							#debug.warning(self.gen_debug_space() + "semicolumn : " + str(self.nameStack));
+							#debug.warning(self.gen_debug_space() + "variable : " + str(self.nameStack));
 				self.stack = []
 				self.nameStack = []
 				self.lastComment = []
@@ -427,6 +431,7 @@ class parse_file():
 	
 	def create_element(self, type, stack):
 		ret = None
+		self.previous = None
 		if    type == 'empty' \
 		   or type == 'enum list':
 			pass
@@ -452,6 +457,7 @@ class parse_file():
 			ret = Enum.Enum(stack, self.headerFileName, self.curLine, self.lastComment)
 		elif type == 'variable':
 			ret = Variable.Variable(stack, self.headerFileName, self.curLine, self.lastComment)
+			self.previous = ret
 		else:
 			debug.error("unknow type ...")
 		return ret

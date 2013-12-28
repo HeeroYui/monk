@@ -48,7 +48,7 @@ def transcode(value):
 	               value,
 	               flags=re.DOTALL)
 	
-	value = re.sub(r'\[color=(\#[0-9A-F]{6}|[a-z\-]+)\](.*?)\[/color\]',
+	value = re.sub(r'\[color=(\(#[0-9A-F]{6}|[a-z\-]+|.+?)\](.*?)\[/color\]',
 	               r'<span style="color: \1;">\2</span>',
 	               value,
 	               flags=re.DOTALL)
@@ -80,6 +80,11 @@ def transcode(value):
 	
 	value = re.sub(r'\[cadre\](.*?)\[/cadre\]',
 	               r'<table align="center" border="0" cellpadding="3" cellspacing="1" width="90%"><tbody><tr><td class="quote">\1</td></tr></tbody></table>',
+	               value,
+	               flags=re.DOTALL)
+	
+	value = re.sub(r'\[pre\]((\\\[|\\\]|.)*?)\[/pre\]',
+	               r'<br/><pre>\1</pre>',
 	               value,
 	               flags=re.DOTALL)
 	

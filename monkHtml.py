@@ -36,8 +36,9 @@ def display_doxygen_param(comment, input, output):
 
 
 def parse_doxygen(data) :
+	data = "\n" + data
 	if '@' in data:
-		streams = data.split("@")
+		streams = data.split("\n@")
 	else:
 		streams = [ "brief " + data]
 	data2 = ''
@@ -66,7 +67,7 @@ def parse_doxygen(data) :
 		if    element[:1] == "\n" \
 		   or element[:2] == "\n\n":
 			# nothing to do : Nomale case of the first \n
-			None
+			pass
 		elif    element[:14] == "param[in,out] " \
 		     or element[:14] == "param[out,in] ":
 			data3 += display_doxygen_param(element[14:], True, True)
@@ -139,9 +140,13 @@ def calculate_methode_size(list):
 	methodeSize = 0;
 	haveVirtual = False
 	for element in list:
-		if element['node'].get_virtual() == True:
+		if     element['node'].get_node_type() == 'methode' \
+		   and element['node'].get_virtual() == True:
 			haveVirtual = True
-		retType = element['node'].get_return_type().to_str()
+		if element['node'].get_node_type() == 'variable':
+			retType = element['node'].get_type().to_str()
+		else:
+			retType = element['node'].get_return_type().to_str()
 		tmpLen = len(retType)
 		if returnSize < tmpLen:
 			returnSize = tmpLen
@@ -153,13 +158,14 @@ def calculate_methode_size(list):
 
 def write_methode(element, namespaceStack, displaySize = None, link = True):
 	if element['node'].get_request_hidden() == True:
-		return
+		return ""
 	if displaySize == None:
 		displaySize = calculate_methode_size([element])
 	ret = ""
 	if 'access' in element.keys():
 		if element['access'] == 'private':
 			ret += '- '
+			return ""
 		elif element['access'] == 'protected':
 			ret += '# '
 		elif element['access'] == 'public':
@@ -169,45 +175,59 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 	else:
 		ret += '  '
 	
-	if element['node'].get_virtual() == True:
-		ret += module.display_color('virtual') + ' '
-	elif displaySize[2] == True:
-		ret += '        '
-	
-	raw, decorated = element['node'].get_return_type().to_str_decorated()
+	if element['node'].get_node_type() == 'variable':
+		if displaySize[2] == True:
+			ret += '        '
+		raw, decorated = element['node'].get_type().to_str_decorated()
+	else:
+		if element['node'].get_virtual() == True:
+			ret += module.display_color('virtual') + ' '
+		elif displaySize[2] == True:
+			ret += '        '
+		
+		raw, decorated = element['node'].get_return_type().to_str_decorated()
 	if raw != "":
 		ret += decorated
 		ret += " "
 		raw += " "
+	
 	ret += white_space(displaySize[0] - len(raw)+1)
 	name = element['node'].get_name()
-	if link == True:
-		ret += '<a class="code-function" href="#' + str(element['node'].get_uid()) + '">' + name + '</a>'
-	else:
-		ret += '<span class="code-function">' + name + '</span>'
-	ret += white_space(displaySize[1] - len(name)) + ' ('
-	listParam = element['node'].get_param()
-	first = True
-	for param in listParam:
-		if first == False:
-			ret += ',<br/>'
-			if displaySize[2] == True:
-				ret += '        '
-			ret += white_space(displaySize[0] + displaySize[1] +5)
-		first = False
-		typeNoDecoration, typeDecorated = param.get_type().to_str_decorated()
-		#retParam = module.display_color(param.get_type().to_str())
-		retParam = typeDecorated
-		if retParam != "":
-			ret += retParam
-			ret += " "
-		ret += "<span class=\"code-argument\">" + param.get_name() + "</span>"
-	ret += ')'
-	if element['node'].get_virtual_pure() == True:
-		ret += ' = 0'
-	if element['node'].get_constant() == True:
-		ret += module.display_color(' const')
 	
+	if element['node'].get_node_type() == 'variable':
+		classDecoration = "code-member"
+	else:
+		classDecoration = "code-function"
+	
+	if link == True:
+		ret += '<a class="' + classDecoration + '" href="#' + str(element['node'].get_uid()) + '">' + name + '</a>'
+	else:
+		ret += '<span class="' + classDecoration + '">' + name + '</span>'
+	
+	if element['node'].get_node_type() != 'variable':
+		ret += white_space(displaySize[1] - len(name)) + ' ('
+		listParam = element['node'].get_param()
+		first = True
+		for param in listParam:
+			if first == False:
+				ret += ',<br/>'
+				if displaySize[2] == True:
+					ret += '        '
+				ret += white_space(displaySize[0] + displaySize[1] +5)
+			first = False
+			typeNoDecoration, typeDecorated = param.get_type().to_str_decorated()
+			#retParam = module.display_color(param.get_type().to_str())
+			retParam = typeDecorated
+			if retParam != "":
+				ret += retParam
+				ret += " "
+			ret += "<span class=\"code-argument\">" + param.get_name() + "</span>"
+		ret += ')'
+		if element['node'].get_virtual_pure() == True:
+			ret += ' = 0'
+		if element['node'].get_constant() == True:
+			ret += module.display_color(' const')
+		
 	ret += ';'
 	ret += '<br/>'
 	return ret
@@ -246,49 +266,97 @@ def generate_page(outFolder, header, footer, element):
 		file.write(documentation)
 		file.write('<br/>\n')
 	
+	if element.get_node_type() in ['namespace']:
+		tmpName = element.get_name()
+		tmpNameUpper = tmpName.upper()
+		tmpName = tmpNameUpper[0] + tmpName[1:]
+		compleateName = ""
+		for namespace in element.get_namespace():
+			compleateName += namespace + "::"
+		compleateName += tmpName
+		associatedClass = module.get_element_with_name(compleateName)
+		if associatedClass != None:
+			file.write('<h2>Associated Class:</h2>');
+			file.write('<ul>\n');
+			file.write(generate_link(associatedClass));
+			file.write('</ul>\n');
+	
+	if element.get_node_type() in ['class']:
+		tmpName = element.get_name()
+		tmpNameLower = tmpName.lower()
+		tmpName = tmpNameLower[0] + tmpName[1:]
+		compleateName = ""
+		for namespace in element.get_namespace():
+			compleateName += namespace + "::"
+		compleateName += tmpName
+		associatedClass = module.get_element_with_name(compleateName)
+		if associatedClass != None:
+			file.write('<h2>Associated Namespace:</h2>');
+			file.write('<ul>\n');
+			file.write(generate_link(associatedClass));
+			file.write('</ul>\n');
+	
 	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct']:
 		for nameElement in ['namespace', 'class', 'struct', 'enum', 'union']:
 			listBase = element.get_all_sub_type(nameElement)
 			if len(listBase) == 0:
 				continue
-			file.write('<h2>' + nameElement + ':</h2>\n');
-			file.write('<ul>\n');
+			descLocal = ""
 			for elem in listBase:
-				file.write('<li>' + generate_link(elem['node']) + '</li>')
-			file.write('</ul>\n');
+				if elem['node'].get_request_hidden() == True:
+					continue
+				if     'access' in elem.keys() \
+				   and elem['access'] == 'private':
+					continue
+				descLocal += '<li>' + generate_link(elem['node']) + '</li>'
+			if descLocal != "":
+				file.write('<h2>' + nameElement + ':</h2>\n');
+				file.write('<ul>\n');
+				file.write(descLocal)
+				file.write('</ul>\n');
 		
 	# calculate element size :
-	listBase = element.get_all_sub_type(['methode', 'constructor', 'destructor'])
+	listBase = element.get_all_sub_type(['methode', 'constructor', 'destructor', 'variable'])
 	displayLen = calculate_methode_size(listBase)
 	
 	if    element.get_node_type() == 'class' \
 	   or element.get_node_type() == 'struct':
 		
 		if len(element.get_all_sub_type(['constructor', 'destructor'])) != 0:
-			file.write('<h2>Constructor and Destructor:</h2>\n')
-			file.write('<pre>\n');
+			globalWrite = ""
 			listBaseConstructor = element.get_all_sub_type(['constructor'])
 			for elem in listBaseConstructor:
-				ret = write_methode(elem, namespaceStack, displayLen)
-				file.write(ret)
+				if elem['access'] == 'private':
+					continue
+				globalWrite += write_methode(elem, namespaceStack, displayLen)
 			listBaseDestructor = element.get_all_sub_type(['destructor'])
 			for elem in listBaseDestructor:
-				ret = write_methode(elem, namespaceStack, displayLen)
-				file.write(ret)
-			file.write('</pre>\n');
-			file.write('<br/>\n')
-		
+				if elem['access'] == 'private':
+					continue
+				globalWrite += write_methode(elem, namespaceStack, displayLen)
+			if globalWrite != "":
+				file.write('<h2>Constructor and Destructor:</h2>\n')
+				file.write('<pre>\n');
+				file.write(globalWrite);
+				file.write('</pre>\n');
+				file.write('<br/>\n')
+	
 	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct']:
-		listBaseMethode = element.get_all_sub_type(['methode'])
+		listBaseMethode = element.get_all_sub_type(['methode', 'variable'])
 		if len(listBaseMethode) != 0:
-			file.write('<h2>Synopsis:</h2>\n')
-			file.write('<pre>\n');
+			globalWrite = ""
 			displayLen = calculate_methode_size(listBaseMethode)
 			for elem in listBaseMethode:
-				ret = write_methode(elem, namespaceStack, displayLen)
-				file.write(ret)
-			file.write('</pre>\n')
-			file.write('<br/>\n')
+				if     'access' in elem.keys() \
+				   and elem['access'] == 'private':
+					continue
+				globalWrite += write_methode(elem, namespaceStack, displayLen)
+			if globalWrite != "":
+				file.write('<h2>Synopsis:</h2>\n')
+				file.write('<pre>\n');
+				file.write(globalWrite);
+				file.write('</pre>\n')
+				file.write('<br/>\n')
 	
 	# generate herirage list :
 	if element.get_node_type() == 'class':
@@ -359,6 +427,11 @@ def generate_page(outFolder, header, footer, element):
 		allDetailDoc = ""
 		lastDoc = ""
 		for subElement in listBase:
+			if subElement['node'].get_request_hidden() == True:
+				continue
+			if     'access' in subElement.keys() \
+			   and subElement['access'] == 'private':
+				continue
 			file.write('<a id="' + str(subElement['node'].get_uid()) + '"/>')
 			if     lastDoc != "" \
 			   and subElement['node'].get_request_in_previous() == True:
