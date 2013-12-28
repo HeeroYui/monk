@@ -31,6 +31,7 @@ class Module:
 		self.listDocFile = []
 		self.listTutorialFile = []
 		self.webSite = ""
+		self.webSource = ""
 		self.pathParsing = ""
 		self.pathGlobalDoc = ""
 		self.externalLink = []
@@ -60,6 +61,13 @@ class Module:
 	
 	def get_website(self):
 		return self.webSite
+	
+	def set_website_sources(self, url):
+		self.webSource = url
+	
+	def get_website_sources(self):
+		return self.webSource
+	
 	
 	##
 	## @brief set the parsing folder

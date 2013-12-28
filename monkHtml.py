@@ -535,6 +535,8 @@ def generate(myLutinDoc, outFolder) :
 		genericHeader += '			<h1><a href="index.html">' + myDoc.get_name() + ' library</a></h1>\n'
 	else:
 		genericHeader += '			<h1><a href="index.html">' + myDoc.get_name() + '</a></h1>\n'
+	if myLutinDoc.get_website_sources() != '':
+		genericHeader += '			<h4><a href="' + myLutinDoc.get_website_sources() + '">&nbsp;&nbsp;&nbsp;[ sources ]</a></h4>\n'
 	genericHeader += '<h3>API:</h3>'
 	genericHeader += '			<div id="menu">\n'
 	#genericHeader += '				<h2>' + myDoc.moduleName + '</h2>\n'
