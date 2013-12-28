@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import monkDebug as debug
 import sys
-import monkTools
+import monkTools as tools
 #import CppHeaderParser
 import re
 import codeBB
@@ -235,7 +235,7 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 def generate_stupid_index_page(outFolder, header, footer, myLutinDoc):
 	# create index.hml : 
 	filename = outFolder + "/index.html"
-	monkTools.create_directory_of_file(filename);
+	tools.create_directory_of_file(filename);
 	file = open(filename, "w")
 	file.write(header)
 	file.write("<h1>" + myLutinDoc.get_base_doc_node().get_name() + "</h1>");
@@ -254,7 +254,7 @@ def generate_page(outFolder, header, footer, element):
 		for elem in listBase:
 			generate_page(outFolder, header, footer, elem['node'])
 	filename = outFolder + '/' + generate_html_page_name(element)
-	monkTools.create_directory_of_file(filename);
+	tools.create_directory_of_file(filename);
 	file = open(filename, "w")
 	file.write(header)
 	file.write('<h1>' + generate_name(element) + '</h1>');
@@ -517,8 +517,8 @@ def generate_page(outFolder, header, footer, element):
 
 def generate(myLutinDoc, outFolder) :
 	myDoc = myLutinDoc.get_base_doc_node()
-	monkTools.copy_file(monkTools.get_current_path(__file__)+"/theme/base.css", outFolder+"/base.css")
-	monkTools.copy_file(monkTools.get_current_path(__file__)+"/theme/menu.css", outFolder+"/menu.css")
+	tools.copy_file(tools.get_current_path(__file__)+"/theme/base.css", outFolder+"/base.css")
+	tools.copy_file(tools.get_current_path(__file__)+"/theme/menu.css", outFolder+"/menu.css")
 	# create common header
 	genericHeader  = '<!DOCTYPE html>\n'
 	genericHeader += '<html>\n'
@@ -545,32 +545,38 @@ def generate(myLutinDoc, outFolder) :
 	genericHeader += '			</div>\n'
 	# TODO : add Generic doc main point.
 	if len(myLutinDoc.listDocFile) > 0:
-		genericHeader += '<h3>Documentation:</h3>'
-		genericHeader += '<div id="menu">\n'
+		docList = ""
 		for docInputName,outpath in myLutinDoc.listDocFile:
 			outputFileName = outFolder + "/" + outpath.replace('/','_') +".html"
 			outputFileName = outputFileName.split('/')[-1]
 			name = outputFileName.split('_')[-1][:-5]
 			if name == "index":
 				continue
-			genericHeader += '<ul class="niveau1">'
-			genericHeader += '<li><a href="' + outputFileName + '">' + name + '</a></li>\n'
-			genericHeader += '</ul>'
-		genericHeader += '</div>\n'
+			docList += '<ul class="niveau1">'
+			docList += '<li><a href="' + outputFileName + '">' + name + '</a></li>\n'
+			docList += '</ul>'
+		if docList != "":
+			genericHeader += '<h3>Documentation:</h3>'
+			genericHeader += '<div id="menu">\n'
+			genericHeader += docList
+			genericHeader += '</div>\n'
 	# TODO : add Tutorial doc main point.
 	if len(myLutinDoc.listTutorialFile) > 0:
-		genericHeader += '<h3>Tutorials:</h3>'
-		genericHeader += '<div id="menu">\n'
+		tutorialList = ""
 		for docInputName,outpath in myLutinDoc.listTutorialFile:
 			outputFileName = outFolder + "/" + outpath+".html"
 			outputFileName = outputFileName.split('/')[-1]
 			name = outputFileName.split('_')[-1][:-5]
 			if name == "index":
 				continue
-			genericHeader += '<ul class="niveau1">'
-			genericHeader += '<li><a href="tutorial_' + outputFileName + '">' + name + '</a></li>\n'
-			genericHeader += '</ul>'
-		genericHeader += '</div>\n'
+			tutorialList += '<ul class="niveau1">'
+			tutorialList += '<li><a href="tutorial_' + outputFileName + '">' + name + '</a></li>\n'
+			tutorialList += '</ul>'
+		if tutorialList != "":
+			genericHeader += '<h3>Tutorials:</h3>'
+			genericHeader += '<div id="menu">\n'
+			genericHeader += tutorialList
+			genericHeader += '</div>\n'
 	
 	
 	localWebsite = myLutinDoc.get_website()
@@ -603,6 +609,10 @@ def generate(myLutinDoc, outFolder) :
 	genericHeader += "	<div class=\"container\" id=\"content\">\n"
 	
 	genericFooter  = "	</div>\n"
+	googleData = tools.file_read_data("google-analytics.txt")
+	if googleData != "":
+		debug.info("insert Google analytics Data")
+		genericFooter += googleData
 	genericFooter += "</body>\n"
 	genericFooter += "</html>\n"
 	
@@ -616,23 +626,23 @@ def generate(myLutinDoc, outFolder) :
 		debug.print_element("doc", myLutinDoc.name, "<==", docInputName)
 		outputFileName = outFolder + "/" + outpath.replace('/','_') +".html"
 		debug.debug("output file : " + outputFileName)
-		monkTools.create_directory_of_file(outputFileName)
-		inData = monkTools.file_read_data(docInputName)
+		tools.create_directory_of_file(outputFileName)
+		inData = tools.file_read_data(docInputName)
 		if inData == "":
 			continue
 		outData = genericHeader + codeBB.transcode(inData) + genericFooter
-		monkTools.file_write_data(outputFileName, outData)
+		tools.file_write_data(outputFileName, outData)
 	
 	for docInputName,outpath in myLutinDoc.listDocFile :
 		debug.print_element("tutorial", myLutinDoc.name, "<==", docInputName)
 		outputFileName = outFolder + outpath + ".html"
 		debug.debug("output file : " + outputFileName)
-		monkTools.create_directory_of_file(outputFileName)
-		inData = monkTools.file_read_data(docInputName)
+		tools.create_directory_of_file(outputFileName)
+		inData = tools.file_read_data(docInputName)
 		if inData == "":
 			continue
 		outData = genericHeader + codeBB.transcode(inData) + genericFooter
-		monkTools.file_write_data(outputFileName, outData)
+		tools.file_write_data(outputFileName, outData)
 
 
 
