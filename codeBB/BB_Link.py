@@ -40,7 +40,7 @@ def transcode(value):
 	               r'<a href="tutorial_\1.html">\2</a>',
 	               value)
 	
-	value = re.sub(r'\[class\[(.*?)\]\]',
+	value = re.sub(r'\[(lib|class|methode)\[(.*?)\]\]',
 	               replace_link_class,
 	               value)
 	
@@ -69,9 +69,16 @@ def replace_link_class(match):
 	if match.group() == "":
 		return ""
 	#debug.info("plop: " + str(match.group()))
-	className = match.groups()[0]
-	value = re.sub(':', '_', className)
-	return '<a href="' + value + '.html">' + className + '</a>'
+	if match.groups()[0] == 'class':
+		className = match.groups()[1]
+		value = re.sub(':', '_', className)
+		return '<a href="class_' + value + '.html">' + className + '</a>'
+	elif match.groups()[0] == 'lib':
+		return match.groups()[1]
+	elif match.groups()[0] == 'methode':
+		return match.groups()[1]
+	else:
+		return match.groups()[1]
 
 
 
