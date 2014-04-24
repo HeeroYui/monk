@@ -126,13 +126,16 @@ def generate_html_page_name(element):
 
 def generate_name(element):
 	namespaceStack = element.get_namespace()
-	link = ""
+	namespaceExpanded = ""
 	for name in namespaceStack:
-		link += name + "::"
-	return element.get_node_type() + ": " + link + element.get_name()
-
+		namespaceExpanded += name + "::"
+	if element.get_name() == "":
+		return element.get_node_type()
+	return element.get_node_type() + ": " + namespaceExpanded + element.get_name()
 
 def generate_link(element):
+	if element.get_name() == "":
+		return '<a href="' + generate_html_page_name(element) + '">** No name **</a>'
 	return '<a href="' + generate_html_page_name(element) + '">' + element.get_name() + '</a>'
 
 def calculate_methode_size(list):

@@ -6,15 +6,22 @@ class Enum(Node.Node):
 	def __init__(self, stack=[], file="", lineNumber=0, documentation=[]):
 		self.baseValue = 0;
 		# check input :
-		if len(stack) < 2:
-			debug.error("Can not parse class : " + str(stack))
+		if len(stack) < 1:
+			debug.error("Can not parse enum : " + str(stack))
 			return
 		self.typedef = False
 		if stack[0] == 'typedef':
 			self.typedef = True
 			stack[1:]
+		if len(stack) == 0:
+			debug.error("Can not parse enum : " + str(stack))
+			return
+		if len(stack) == 1:
+			localEnumName = ""
+		else:
+			localEnumName = stack[1]
 		
-		Node.Node.__init__(self, 'enum', stack[1], file, lineNumber, documentation)
+		Node.Node.__init__(self, 'enum', localEnumName, file, lineNumber, documentation)
 		
 		self.listElement = []
 	

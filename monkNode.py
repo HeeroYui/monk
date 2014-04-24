@@ -44,6 +44,9 @@ class Node():
 	def get_name(self):
 		return self.name
 	
+	def get_UID(self):
+		return self.uid
+	
 	def add_doc(self, doc):
 		for element in doc:
 			self.documenatationCode.append(element)
@@ -214,7 +217,10 @@ class Node():
 		ret += "_"
 		for name in self.namespace:
 			ret += name + "__"
-		ret += self.name
+		if self.name == "":
+			ret += "NO_NAME_" + str(self.uid)
+		else:
+			ret += self.name
 		ret += '.html'
 		return ret
 	
@@ -223,7 +229,10 @@ class Node():
 		ret += "_"
 		for name in self.namespace:
 			ret += name + "__"
-		ret += self.name
+		if self.name == "":
+			ret += "NO_NAME_" + str(self.uid)
+		else:
+			ret += self.name
 		ret += '.html'
 		return ret
 	
