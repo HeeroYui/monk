@@ -121,24 +121,7 @@ class Methode(Node.Node):
 			self.variable.append(Variable.Variable(paramTmp))
 	
 	def to_str(self):
-		ret = ""
-		if self.virtual == True:
-			ret += "virtual "
-		if self.static == True:
-			ret += "static "
-		if self.inline == True:
-			ret += "inline "
-		ret += self.returnType.to_str()
-		ret += " "
-		ret += self.name
-		ret += "("
-		# ...
-		ret += ")"
-		if self.virtualPure == True:
-			ret += " = 0"
-		if self.const == True:
-			ret += " const"
-		return ret
+		return self.to_str_decorated()[0]
 	
 	def to_str_decorated(self):
 		ret = ""
@@ -166,6 +149,9 @@ class Methode(Node.Node):
 		if self.const == True:
 			ret += " const"
 			retDecorated += " " + module.display_color("const")
+		if self.noexcept == True:
+			ret += " noexcept"
+			retDecorated += " " + module.display_color("noexcept")
 		return [ret, retDecorated]
 	
 	##
