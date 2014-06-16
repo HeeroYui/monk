@@ -13,6 +13,7 @@ class Methode(Node.Node):
 		self.static = False
 		self.inline = False
 		self.const = False # the end of line cont methode is sont for the class ...
+		self.noexcept = False
 		
 		# remove constructer inside declaration ...
 		if ':' in stack:
@@ -23,6 +24,29 @@ class Methode(Node.Node):
 				else:
 					break
 			stack = res
+		
+		#check if it is a template class:
+		if stack[0] == "template":
+			debug.debug("find a template methode: " + str(stack))
+			#remove template properties ==> not manage for now ...
+			newStack = []
+			counter = 0
+			counterEnable = True
+			# start at the first '<'
+			for element in stack[1:]:
+				if counterEnable == True:
+					if element[0] == '<':
+						counter += 1;
+					elif element[0] == '>':
+						counter -= 1;
+				if counter == 0:
+					if counterEnable == True:
+						counterEnable = False
+					else:
+						newStack.append(element)
+			stack = newStack
+			# TODO : add the template properties back ...
+			debug.verbose("find a template methode: " + str(stack))
 		
 		if     stack[len(stack)-2] == '=' \
 		   and stack[len(stack)-1] == '0':
@@ -38,6 +62,9 @@ class Methode(Node.Node):
 		if stack[0] == 'inline':
 			self.inline = True
 			stack = stack[1:]
+		if stack[len(stack)-1] == 'noexcept':
+			self.noexcept = True
+			stack = stack[:len(stack)-1]
 		if stack[len(stack)-1] == 'const':
 			self.const = True
 			stack = stack[:len(stack)-1]

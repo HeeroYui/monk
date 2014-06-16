@@ -24,6 +24,7 @@ import monkNode as Node
 
 tokens = [
 	'NUMBER',
+	'TEMPLATE',
 	'NAME',
 	'OPEN_PAREN',
 	'CLOSE_PAREN',
@@ -59,7 +60,8 @@ tokens = [
 ]
 
 t_ignore = " \r.?@\f"
-t_NUMBER = r'[0-9][0-9XxA-Fa-f]*'
+t_TEMPLATE = r'template'
+t_NUMBER = r'[0-9][0-9XxA-Fa-f]*L?'
 t_NAME = r'[<>A-Za-z_~][A-Za-z0-9_]*'
 t_OPEN_PAREN = r'\('
 t_CLOSE_PAREN = r'\)'
@@ -237,7 +239,7 @@ class parse_file():
 		
 		# Strip out template declarations
 		# TODO : What is the real need ???
-		headerFileStr = re.sub("template[\t ]*<[^>]*>", "", headerFileStr)
+		#headerFileStr = re.sub("template[\t ]*<[^>]*>", "", headerFileStr)
 		# remove all needed \r unneeded ==> this simplify next resExp ...
 		headerFileStr = re.sub("\r", "\r\n", headerFileStr)
 		headerFileStr = re.sub("\r\n\n", "\r\n", headerFileStr)
@@ -561,6 +563,11 @@ def is_a_function(stack) :
 	#can end with 2 possibilities : ')', 'const' or ')'
 	if    stack[len(stack)-1] == ')' \
 	   or (     stack[len(stack)-2] == ')' \
-	        and stack[len(stack)-1] == 'const'):
+	        and stack[len(stack)-1] == 'const')\
+	   or (     stack[len(stack)-2] == ')' \
+	        and stack[len(stack)-1] == 'noexcept')\
+	   or (     stack[len(stack)-3] == ')' \
+	        and stack[len(stack)-2] == 'const' \
+	        and stack[len(stack)-1] == 'noexcept'):
 		return True
 	return False

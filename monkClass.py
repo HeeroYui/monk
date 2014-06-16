@@ -19,6 +19,15 @@ class Class(Node.Node):
 		if len(stack) < 2:
 			debug.error("Can not parse class : " + str(stack))
 			return
+		#check if it is a template class:
+		if stack[0] == "template":
+			debug.debug("find a template class: " + str(stack))
+			#remove template properties ==> not manage for now ...
+			stack = stack[stack.index("class"):]
+			# TODO : add the template properties back ...
+		if len(stack) < 2:
+			debug.error("Can not parse class 2 : " + str(stack))
+			return
 		Node.Node.__init__(self, 'class', stack[1], file, lineNumber, documentation)
 		self.subList = []
 		self.access = "private"
