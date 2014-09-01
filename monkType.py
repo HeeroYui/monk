@@ -18,7 +18,13 @@ global_class_link = {
 	"std::u16string" : "http://www.cplusplus.com/reference/string/u16string/",
 	"std::u32string" : "http://www.cplusplus.com/reference/string/u32string/",
 	"std::wstring"   : "http://www.cplusplus.com/reference/string/wstring/",
-	"std::vector"    : "http://www.cplusplus.com/reference/vector/vector/"
+	"std::vector"    : "http://www.cplusplus.com/reference/vector/vector/",
+	"std::list"      : "http://www.cplusplus.com/reference/list/list/",
+	"std::pair"      : "http://www.cplusplus.com/reference/utility/pair/",
+	"std::tuple"     : "http://www.cplusplus.com/reference/tuple/tuple/",
+	"std::shared_ptr": "http://www.cplusplus.com/reference/memory/shared_ptr/",
+	"std::weak_ptr"  : "http://www.cplusplus.com/reference/memory/weak_ptr/",
+	"std::enable_shared_from_this" : "http://www.cplusplus.com/reference/memory/enable_shared_from_this/"
 	}
 
 

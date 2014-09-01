@@ -13,6 +13,21 @@ def concatenate_template(list):
 	# TODO ...
 	return list
 
+def splitList(list):
+	base = []
+	out = []
+	for elem in list:
+		if elem == ",":
+			out.append(base)
+			base = []
+		else:
+			base.append(elem)
+	if len(base) != 0:
+		out.append(base)
+		base = []
+	return out
+
+
 class Class(Node.Node):
 	def __init__(self, stack=[], file="", lineNumber=0, documentation=[]):
 		# check input :
@@ -20,20 +35,31 @@ class Class(Node.Node):
 			debug.error("Can not parse class : " + str(stack))
 			return
 		#check if it is a template class:
+		templateDeclatation = []
 		if stack[0] == "template":
 			debug.debug("find a template class: " + str(stack))
 			#remove template properties ==> not manage for now ...
-			propertyTemplate = stack[1:stack.index("class")-1]
+			idEnd = 2
+			level = 1
+			for tmpClassElem in stack[2:]:
+				if tmpClassElem[0] == '<':
+					level+=1
+				elif tmpClassElem[0] == '>':
+					level-=1
+					if level == 0:
+						break
+				idEnd+=1
+			propertyTemplate = stack[1:idEnd]
 			propertyTemplate[0] = propertyTemplate[0][1:]
-			stack = stack[stack.index("class"):]
+			templateDeclatation = splitList(propertyTemplate)
+			stack = stack[idEnd+1:]
 			# TODO : add the template properties back ...
-			debug.debug("template property : " + str(propertyTemplate))
-		else:
-			self.template = []
+			debug.debug("template property : " + str(templateDeclatation))
 		if len(stack) < 2:
 			debug.error("Can not parse class 2 : " + str(stack))
 			return
 		Node.Node.__init__(self, 'class', stack[1], file, lineNumber, documentation)
+		self.template = templateDeclatation
 		self.subList = []
 		self.access = "private"
 		# heritage list :
@@ -74,13 +100,24 @@ class Class(Node.Node):
 		list = concatenate_template(stack[3:])
 		debug.verbose("inherit : " + str(list))
 		access = "private"
+		classProperty = []
 		for element in list:
 			if element in ['private', 'protected', 'public']:
 				access = element
 			elif element == ',':
-				pass
+				concatenate = ""
+				for classProp in classProperty:
+					concatenate += classProp
+				self.inherit.append({'access' : access, 'class' : concatenate})
+				classProperty = []
 			else:
-				self.inherit.append({'access' : access, 'class' : element})
+				classProperty.append(element)
+		if len(classProperty) != 0:
+			concatenate = ""
+			for classProp in classProperty:
+				concatenate += classProp
+			self.inherit.append({'access' : access, 'class' : concatenate})
+			classProperty = []
 		
 		debug.verbose("class : " + self.to_str())
 	
@@ -105,11 +142,11 @@ class Class(Node.Node):
 		parent = module.get_element_with_name(self.inherit[0]['class'])
 		cparent = []
 		if parent != None:
-			debug.verbose(" plop : " + self.name + " " + str(parent) + " " + parent.get_name())
+			debug.verbose("Prent : " + self.name + " " + str(parent) + " " + parent.get_name())
 			cparent = parent.get_parents()
 			pass
 		#heritage = parent.
-		cparent.append(self.inherit[0])
+		cparent.append(self.inherit)
 		return cparent
 	
 	def get_whith_specific_parrent(self, parrentName):

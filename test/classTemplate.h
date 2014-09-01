@@ -1,8 +1,14 @@
 
 namespace testMonk {
-	template<typename T> class classTemplate {
+	template<typename T> class ClassTemplate {
 		public:
-			classTemplate();
-			~classTemplate();
+			ClassTemplate();
+			~ClassTemplate();
+	};
+	template<typename T, class T2> class ClassTemplateMultiple {
+		public:
+			ClassTemplateMultiple();
+			~ClassTemplateMultiple();
+			testMonk::ClassTemplate<classPlop> m_essay ponterClass
 	};
 }

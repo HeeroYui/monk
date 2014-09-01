@@ -9,6 +9,21 @@ import collections
 import monkModule as module
 import monkNode as node
 
+htmlCodes = (
+	('&', '&amp;'),
+	("'", '&#39;'),
+	('"', '&quot;'),
+	('>', '&gt;'),
+	('<', '&lt;')
+)
+def html_decode(s):
+	for code in htmlCodes:
+		s = s.replace(code[1], code[0])
+	return s
+def html_encode(s):
+	for code in htmlCodes:
+		s = s.replace(code[0], code[1])
+	return s
 
 def display_doxygen_param(comment, input, output):
 	data = '<tr>'
@@ -143,11 +158,11 @@ def calculate_methode_size(list):
 	methodeSize = 0;
 	haveVirtual = False
 	for element in list:
-		if     (    element['node'].get_node_type() == 'methode' \
-		         or element['node'].get_node_type() == 'constructor' \
-		         or element['node'].get_node_type() == 'desctructor') \
-		   and element['node'].get_virtual() == True:
-			haveVirtual = True
+		if     element['node'].get_node_type() == 'methode' \
+		    or element['node'].get_node_type() == 'constructor' \
+		    or element['node'].get_node_type() == 'destructor':
+			if element['node'].get_virtual() == True:
+				haveVirtual = True
 		if element['node'].get_node_type() == 'variable':
 			retType = element['node'].get_type().to_str()
 		else:
@@ -365,44 +380,52 @@ def generate_page(outFolder, header, footer, element):
 	
 	# generate herirage list :
 	if element.get_node_type() == 'class':
-		parent = element.get_parents()
-		debug.verbose("parrent of " + element.get_name() + " : " + str(parent))
+		parentAll = element.get_parents()
+		debug.verbose("parrent of " + element.get_name() + " : " + str(parentAll))
 		child = module.get_whith_specific_parrent(element.get_displayable_name(), )
-		if    len(parent) != 0 \
+		if    len(parentAll) != 0 \
 		   or len(child) != 0:
 			file.write('<h2>Object Hierarchy:<h2>\n')
 			file.write('<pre>\n');
 			level = 0
-			parent.append({'access':'me', 'class':element.get_displayable_name()})
-			for parentElem in parent:
-				access = ""
-				if parentElem['access'] == 'public':
-					access = "+"
-				elif parentElem['access'] == 'protected':
-					access = "#"
-				elif parentElem['access'] == 'private':
-					access = "-"
-				tmpLen = level * 7
-				if tmpLen > 0:
-					tmpLen -= 5
-				file.write(white_space(tmpLen))
-				if level != 0:
-					file.write('+--> ')
-				file.write(access)
-				if parentElem['access'] == 'me':
-					file.write(parentElem['class'])
-				else:
+			for parent in parentAll:
+				for parentElem in parent:
+					access = ""
+					if parentElem['access'] == 'public':
+						access = "+"
+					elif parentElem['access'] == 'protected':
+						access = "#"
+					elif parentElem['access'] == 'private':
+						access = "-"
+					tmpLen = level * 7
+					if tmpLen > 0:
+						tmpLen -= 5
+					file.write(white_space(tmpLen))
+					if level != 0:
+						file.write('+--> ')
+					file.write(access)
 					classPointer = module.get_element_with_name(parentElem['class'])
 					if classPointer != None:
 						link = classPointer.get_doc_website_page()
 						link = node.get_doc_website_page_relative(currentPageSite, link)
 						file.write('<a href="' + link + '">')
-					file.write(parentElem['class'])
+					file.write(html_encode(parentElem['class']))
+					#debug.warning("nodeName " + html_encode(parentElem['class']) )
 					if classPointer != None:
 						file.write('</a>')
-				
-				file.write('<br/>')
+					
+					file.write('<br/>')
 				level += 1
+			# write local class:
+			tmpLen = level * 7
+			if tmpLen > 0:
+				tmpLen -= 5
+			file.write(white_space(tmpLen))
+			if level != 0:
+				file.write('+--> ')
+			file.write(element.get_displayable_name())
+			file.write('<br/>')
+			level += 1
 			# all child not in application :
 			for childElem in child:
 				tmpLen = level * 7

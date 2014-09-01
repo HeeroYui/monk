@@ -30,6 +30,7 @@ class Node():
 		self.moduleLink = None # this is a link on the main application node or library node (usefull to get the website ...)
 		self.hiddenRequest = False # @not-in-doc
 		self.previousRequest = False # @previous
+		self.template = []
 		self.add_doc(documentation)
 	
 	def to_str(self):
@@ -42,7 +43,22 @@ class Node():
 		return self.nodeType
 	
 	def get_name(self):
-		return self.name
+		ret = ""
+		if self.template != []:
+			ret += "template&lt;"
+			first = True
+			for elem in self.template:
+				if first == True:
+					first = False
+				else:
+					ret += ", "
+				if len(elem) >= 2:
+					ret += elem[1]
+				else:
+					ret += elem[0]
+			ret += "&gt "
+		ret += self.name
+		return ret
 	
 	def get_UID(self):
 		return self.uid
@@ -108,7 +124,7 @@ class Node():
 			return ""
 		
 		for myParent in reversed(parents):
-			element = module.get_element_with_name(myParent['class'])
+			element = module.get_element_with_name(myParent[0]['class'])
 			if element == None:
 				continue
 			heveMethode, pointerMethode = element.have_methode(self.name)
@@ -233,6 +249,19 @@ class Node():
 			ret += "NO_NAME_" + str(self.uid)
 		else:
 			ret += self.name
+		if self.template != []:
+			ret += "__template_"
+			first = True
+			for elem in self.template:
+				if first == True:
+					first = False
+				else:
+					ret += "_"
+				if len(elem) >= 2:
+					ret += elem[1]
+				else:
+					ret += elem[0]
+			ret += "__"
 		ret += '.html'
 		return ret
 	
