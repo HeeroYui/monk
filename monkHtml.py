@@ -143,7 +143,9 @@ def calculate_methode_size(list):
 	methodeSize = 0;
 	haveVirtual = False
 	for element in list:
-		if     element['node'].get_node_type() == 'methode' \
+		if     (    element['node'].get_node_type() == 'methode' \
+		         or element['node'].get_node_type() == 'constructor' \
+		         or element['node'].get_node_type() == 'desctructor') \
 		   and element['node'].get_virtual() == True:
 			haveVirtual = True
 		if element['node'].get_node_type() == 'variable':

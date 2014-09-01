@@ -23,8 +23,13 @@ class Class(Node.Node):
 		if stack[0] == "template":
 			debug.debug("find a template class: " + str(stack))
 			#remove template properties ==> not manage for now ...
+			propertyTemplate = stack[1:stack.index("class")-1]
+			propertyTemplate[0] = propertyTemplate[0][1:]
 			stack = stack[stack.index("class"):]
 			# TODO : add the template properties back ...
+			debug.debug("template property : " + str(propertyTemplate))
+		else:
+			self.template = []
 		if len(stack) < 2:
 			debug.error("Can not parse class 2 : " + str(stack))
 			return
@@ -32,10 +37,34 @@ class Class(Node.Node):
 		self.subList = []
 		self.access = "private"
 		# heritage list :
+		self.templateType = None
+		self.templateTypeStr = ""
 		self.inherit = []
 		if len(stack) == 2:
 			# just a simple class...
 			return
+		# remove template specification:
+		if stack[2][0] == '<':
+			# This is a template
+			for iii in range(0, len(stack)):
+				if stack[iii] == '>':
+					self.templateType = stack[2:iii]
+					stack = stack[:2] + stack[iii+1:]
+					break;
+			# TODO : add tpe in rendering
+			if self.templateType == None:
+				debug.error("error in parsing class : " + str(stack) + " can not parse template property ...")
+			else:
+				copyTemplateType = self.templateType;
+				self.templateType = []
+				self.templateTypeStr = "<"
+				for val in copyTemplateType:
+					if val[0] == '<':
+						val = val[1:]
+					if val != '>':
+						self.templateType.append(val)
+						self.templateTypeStr += val + " "
+				self.templateTypeStr = ">"
 		if len(stack) == 3:
 			debug.error("error in parsing class : " + str(stack))
 			return
@@ -57,6 +86,7 @@ class Class(Node.Node):
 	
 	def to_str(self) :
 		ret = "class " + self.name
+		ret += self.templateTypeStr
 		if len(self.inherit) != 0 :
 			ret += " : "
 			isFirst = True
@@ -75,7 +105,7 @@ class Class(Node.Node):
 		parent = module.get_element_with_name(self.inherit[0]['class'])
 		cparent = []
 		if parent != None:
-			#debug.info(" plop : " + self.name + " " + str(parent) + " " + parent.get_name())
+			debug.verbose(" plop : " + self.name + " " + str(parent) + " " + parent.get_name())
 			cparent = parent.get_parents()
 			pass
 		#heritage = parent.

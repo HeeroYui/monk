@@ -275,7 +275,7 @@ class parse_file():
 			tok = lex.token()
 			if not tok:
 				break
-			debug.debug("TOK: " + str(tok))
+			debug.verbose("TOK: " + str(tok))
 			self.stack.append( tok.value )
 			self.curLine = tok.lineno
 			self.curChar = tok.lexpos
