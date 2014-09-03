@@ -25,6 +25,46 @@ def html_encode(s):
 		s = s.replace(code[0], code[1])
 	return s
 
+camelCaseCodes = (
+	('A', ' a'),
+	('B', ' b'),
+	('C', ' c'),
+	('D', ' d'),
+	('E', ' e'),
+	('F', ' f'),
+	('G', ' g'),
+	('H', ' h'),
+	('I', ' i'),
+	('J', ' j'),
+	('K', ' k'),
+	('L', ' l'),
+	('M', ' m'),
+	('N', ' n'),
+	('O', ' o'),
+	('P', ' p'),
+	('Q', ' q'),
+	('R', ' r'),
+	('S', ' s'),
+	('T', ' t'),
+	('U', ' u'),
+	('V', ' v'),
+	('W', ' w'),
+	('X', ' x'),
+	('Y', ' y'),
+	('Z', ' z'),
+)
+def camel_case_encode(s):
+	for code in camelCaseCodes:
+		s = s.replace(code[1], code[0])
+	return s
+def camel_case_decode(s):
+	for code in camelCaseCodes:
+		s = s.replace(code[0], code[1])
+	return s
+
+def capitalise_first_letter(s):
+	return word[0].upper() + word[1:]
+
 def display_doxygen_param(comment, input, output):
 	data = '<tr>'
 	data = '<td>'
@@ -266,13 +306,14 @@ def generate_stupid_index_page(outFolder, header, footer, myLutinDoc):
 	file.write(footer)
 	file.close();
 
-def generate_page(outFolder, header, footer, element):
+def generate_page(outFolder, header, footer, element, name_lib=""):
+	debug.print_element("code-doc", name_lib, "<==", element.name)
 	currentPageSite = element.get_doc_website_page()
 	namespaceStack = element.get_namespace()
 	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union']:
 		listBase = element.get_all_sub_type(['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union'])
 		for elem in listBase:
-			generate_page(outFolder, header, footer, elem['node'])
+			generate_page(outFolder, header, footer, elem['node'], name_lib)
 	filename = outFolder + '/' + generate_html_page_name(element)
 	tools.create_directory_of_file(filename);
 	file = open(filename, "w")
@@ -581,7 +622,7 @@ def generate(myLutinDoc, outFolder) :
 			if name == "index":
 				continue
 			docList += '<ul class="niveau1">'
-			docList += '<li><a href="' + outputFileName + '">' + name + '</a></li>\n'
+			docList += '<li><a href="' + outputFileName + '">' + camel_case_decode(name).capitalize() + '</a></li>\n'
 			docList += '</ul>'
 		if docList != "":
 			genericHeader += '<h3>Documentation:</h3>'
@@ -598,7 +639,7 @@ def generate(myLutinDoc, outFolder) :
 			if name == "index":
 				continue
 			tutorialList += '<ul class="niveau1">'
-			tutorialList += '<li><a href="tutorial_' + outputFileName + '">' + name + '</a></li>\n'
+			tutorialList += '<li><a href="tutorial_' + outputFileName + '">' + camel_case_decode(name).capitalize() + '</a></li>\n'
 			tutorialList += '</ul>'
 		if tutorialList != "":
 			genericHeader += '<h3>Tutorials:</h3>'
@@ -648,21 +689,41 @@ def generate(myLutinDoc, outFolder) :
 	generate_stupid_index_page(outFolder, genericHeader, genericFooter, myLutinDoc)
 	
 	# create the namespace index properties :
-	generate_page(outFolder, genericHeader, genericFooter, myDoc)
+	generate_page(outFolder, genericHeader, genericFooter, myDoc, name_lib=myLutinDoc.name )
 	
-	for docInputName,outpath in myLutinDoc.listTutorialFile :
-		debug.print_element("doc", myLutinDoc.name, "<==", docInputName)
+	for iii in range(0, len(myLutinDoc.listTutorialFile)) :
+		docInputName,outpath = myLutinDoc.listTutorialFile[iii]
+		
+		debug.print_element("tutorial", myLutinDoc.name, "<==", docInputName)
 		outputFileName = outFolder + "/" + outpath.replace('/','_') +".html"
 		debug.debug("output file : " + outputFileName)
 		tools.create_directory_of_file(outputFileName)
+		name = outputFileName.split('_')[-1][:-5]
 		inData = tools.file_read_data(docInputName)
 		if inData == "":
 			continue
-		outData = genericHeader + codeBB.transcode(inData) + genericFooter
+		outData = genericHeader
+		localHeader = ""
+		localHeader += "=?=" + camel_case_decode(name) + "=?=\n___________________________\n"
+		if iii != 0:
+			previousName, previousOutpath = myLutinDoc.listTutorialFile[iii-1]
+			previousName = previousName.split('_')[-1][:-3]
+			previousOutpath = previousOutpath.split('/')[-1]
+			localHeader += "[left][tutorial[" + previousOutpath + " | Previous: " + camel_case_decode(previousName).capitalize() + "]][/left] "
+		if iii != len(myLutinDoc.listTutorialFile)-1:
+			nextName, nextOutpath = myLutinDoc.listTutorialFile[iii+1]
+			nextName = nextName.split('_')[-1][:-3]
+			nextOutpath = nextOutpath.split('/')[-1]
+			localHeader += " [right][tutorial[" + nextOutpath + " | Next: " + camel_case_decode(nextName).capitalize() + "]][/right]"
+		localHeader += "\n"
+		outData += codeBB.transcode(localHeader)
+		#debug.info(localHeader)
+		outData += codeBB.transcode(inData)
+		outData += genericFooter
 		tools.file_write_data(outputFileName, outData)
 	
 	for docInputName,outpath in myLutinDoc.listDocFile :
-		debug.print_element("tutorial", myLutinDoc.name, "<==", docInputName)
+		debug.print_element("doc", myLutinDoc.name, "<==", docInputName)
 		outputFileName = outFolder + outpath + ".html"
 		debug.debug("output file : " + outputFileName)
 		tools.create_directory_of_file(outputFileName)

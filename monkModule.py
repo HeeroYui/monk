@@ -131,8 +131,8 @@ class Module:
 				for filename in tmpList:
 					fileCompleteName = os.path.join(root, filename)
 					tutorialPath = os.path.join(self.pathGlobalDoc, "tutorial/")
-					debug.verbose("    Find a doc file : '" + fileCompleteName + "'")
 					pathBase = fileCompleteName[len(self.pathGlobalDoc):len(fileCompleteName)-3]
+					debug.verbose("    Find a doc file : fileCompleteName='" + fileCompleteName + "'")
 					if fileCompleteName[:len(tutorialPath)] == tutorialPath:
 						self.add_tutorial_doc(fileCompleteName, pathBase)
 					else:
@@ -146,7 +146,14 @@ class Module:
 	##
 	def add_file_doc(self, filename, outPath):
 		debug.debug("adding file in documantation : '" + filename + "'");
-		self.listDocFile.append([filename, outPath])
+		done = False
+		for iii in range(0,len(self.listDocFile)):
+			if self.listDocFile[iii][0] > filename:
+				self.listDocFile.insert(iii, [filename, outPath])
+				done = True
+				break
+		if done == False:
+			self.listDocFile.append([filename, outPath])
 	
 	##
 	## @brief Add a documentation file at the parsing system
@@ -155,8 +162,16 @@ class Module:
 	## @return True if no error occured, False otherwise
 	##
 	def add_tutorial_doc(self, filename, outPath):
+		count = int(filename.split('/')[-1].split('_')[0])
 		debug.debug("adding file in documantation : '" + filename + "'");
-		self.listTutorialFile.append([filename, outPath])
+		done = False
+		for iii in range(0,len(self.listTutorialFile)):
+			if self.listTutorialFile[iii][0] > filename:
+				self.listTutorialFile.insert(iii, [filename, outPath])
+				done = True
+				break
+		if done == False:
+			self.listTutorialFile.append([filename, outPath])
 	
 	##
 	## @brief Add a file at the parsing system
