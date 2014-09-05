@@ -60,10 +60,15 @@ def camel_case_encode(s):
 def camel_case_decode(s):
 	for code in camelCaseCodes:
 		s = s.replace(code[0], code[1])
+	while s[0] == ' ':
+		s = s[1:]
 	return s
 
 def capitalise_first_letter(s):
-	return word[0].upper() + word[1:]
+	s2 = " " + s[0]
+	ret = camel_case_encode(s2) + s[1:]
+	debug.info("'" + s + "' => '" + ret + "'")
+	return ret;
 
 def display_doxygen_param(comment, input, output):
 	data = '<tr>'
@@ -622,7 +627,7 @@ def generate(myLutinDoc, outFolder) :
 			if name == "index":
 				continue
 			docList += '<ul class="niveau1">'
-			docList += '<li><a href="' + outputFileName + '">' + camel_case_decode(name).capitalize() + '</a></li>\n'
+			docList += '<li><a href="' + outputFileName + '">' + capitalise_first_letter(camel_case_decode(name)) + '</a></li>\n'
 			docList += '</ul>'
 		if docList != "":
 			genericHeader += '<h3>Documentation:</h3>'
@@ -639,7 +644,7 @@ def generate(myLutinDoc, outFolder) :
 			if name == "index":
 				continue
 			tutorialList += '<ul class="niveau1">'
-			tutorialList += '<li><a href="tutorial_' + outputFileName + '">' + camel_case_decode(name).capitalize() + '</a></li>\n'
+			tutorialList += '<li><a href="tutorial_' + outputFileName + '">' + capitalise_first_letter(camel_case_decode(name)) + '</a></li>\n'
 			tutorialList += '</ul>'
 		if tutorialList != "":
 			genericHeader += '<h3>Tutorials:</h3>'
@@ -709,12 +714,12 @@ def generate(myLutinDoc, outFolder) :
 			previousName, previousOutpath = myLutinDoc.listTutorialFile[iii-1]
 			previousName = previousName.split('_')[-1][:-3]
 			previousOutpath = previousOutpath.split('/')[-1]
-			localHeader += "[left][tutorial[" + previousOutpath + " | Previous: " + camel_case_decode(previousName).capitalize() + "]][/left] "
+			localHeader += "[left][tutorial[" + previousOutpath + " | Previous: " + capitalise_first_letter(camel_case_decode(previousName)) + "]][/left] "
 		if iii != len(myLutinDoc.listTutorialFile)-1:
 			nextName, nextOutpath = myLutinDoc.listTutorialFile[iii+1]
 			nextName = nextName.split('_')[-1][:-3]
 			nextOutpath = nextOutpath.split('/')[-1]
-			localHeader += " [right][tutorial[" + nextOutpath + " | Next: " + camel_case_decode(nextName).capitalize() + "]][/right]"
+			localHeader += " [right][tutorial[" + nextOutpath + " | Next: " + capitalise_first_letter(camel_case_decode(nextName)) + "]][/right]"
 		localHeader += "\n"
 		outData += codeBB.transcode(localHeader)
 		#debug.info(localHeader)
