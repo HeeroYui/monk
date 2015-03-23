@@ -14,19 +14,63 @@ global_basic_type = ['void', 'bool', \
                      'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'uint128_t', \
                      'T', 'CLASS_TYPE']
 global_class_link = {
-	"std::string"    : "http://www.cplusplus.com/reference/string/string/",
-	"std::u16string" : "http://www.cplusplus.com/reference/string/u16string/",
-	"std::u32string" : "http://www.cplusplus.com/reference/string/u32string/",
-	"std::wstring"   : "http://www.cplusplus.com/reference/string/wstring/",
-	"std::vector"    : "http://www.cplusplus.com/reference/vector/vector/",
-	"std::list"      : "http://www.cplusplus.com/reference/list/list/",
-	"std::pair"      : "http://www.cplusplus.com/reference/utility/pair/",
-	"std::tuple"     : "http://www.cplusplus.com/reference/tuple/tuple/",
-	"std::ostream"   : "http://www.cplusplus.com/reference/ostream/ostream/",
-	"std::shared_ptr": "http://www.cplusplus.com/reference/memory/shared_ptr/",
-	"std::weak_ptr"  : "http://www.cplusplus.com/reference/memory/weak_ptr/",
+	"std::string"      : "http://www.cplusplus.com/reference/string/string/",
+	"std::u16string"   : "http://www.cplusplus.com/reference/string/u16string/",
+	"std11::u16string" : "http://www.cplusplus.com/reference/string/u16string/",
+	"std::u32string"   : "http://www.cplusplus.com/reference/string/u32string/",
+	"std11::u32string" : "http://www.cplusplus.com/reference/string/u32string/",
+	"std::wstring"     : "http://www.cplusplus.com/reference/string/wstring/",
+	"std::vector"      : "http://www.cplusplus.com/reference/vector/vector/",
+	"std::list"        : "http://www.cplusplus.com/reference/list/list/",
+	"std::pair"        : "http://www.cplusplus.com/reference/utility/pair/",
+	"std::tuple"       : "http://www.cplusplus.com/reference/tuple/tuple/",
+	
+	"std::shared_ptr"  : "http://www.cplusplus.com/reference/memory/shared_ptr/",
+	"std11::shared_ptr": "http://www.cplusplus.com/reference/memory/shared_ptr/",
+	
+	"std::weak_ptr"    : "http://www.cplusplus.com/reference/memory/weak_ptr/",
+	"std11::weak_ptr"  : "http://www.cplusplus.com/reference/memory/weak_ptr/",
+	
 	"std::enable_shared_from_this" : "http://www.cplusplus.com/reference/memory/enable_shared_from_this/",
-	"std::function" : "http://www.cplusplus.com/reference/functional/function/"
+	"std11::enable_shared_from_this" : "http://www.cplusplus.com/reference/memory/enable_shared_from_this/",
+	
+	"std::mutex"  : "http://www.cplusplus.com/reference/mutex/mutex/",
+	"std11::mutex": "http://www.cplusplus.com/reference/mutex/mutex/",
+	
+	"std::unique_lock"  : "http://www.cplusplus.com/reference/mutex/unique_lock/",
+	"std11::unique_lock": "http://www.cplusplus.com/reference/mutex/unique_lock/",
+	
+	"std::chrono::"  : "http://www.cplusplus.com/reference/chrono/time_point/",
+	"std11::chrono::": "http://www.cplusplus.com/reference/chrono/time_point/",
+	
+	"std::chrono::system_clock::time_point"   : "http://www.cplusplus.com/reference/chrono/time_point/",
+	"std11::chrono::system_clock::time_point" : "http://www.cplusplus.com/reference/chrono/time_point/",
+	"std::chrono::steady_clock::time_point"   : "http://www.cplusplus.com/reference/chrono/time_point/",
+	"std11::chrono::steady_clock::time_point" : "http://www.cplusplus.com/reference/chrono/time_point/",
+	"std::chrono::time_point"                 : "http://www.cplusplus.com/reference/chrono/time_point/",
+	"std11::chrono::time_point"               : "http://www.cplusplus.com/reference/chrono/time_point/",
+	
+	"std::chrono::system_clock":"http://www.cplusplus.com/reference/chrono/system_clock/",
+	"std11::chrono::system_clock":"http://www.cplusplus.com/reference/chrono/system_clock/",
+	
+	"std::chrono::steady_clock":"http://www.cplusplus.com/reference/chrono/steady_clock/",
+	"std11::chrono::steady_clock":"http://www.cplusplus.com/reference/chrono/steady_clock/",
+	
+	"std::chrono::duration":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std11::chrono::duration":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std::chrono::hours":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std11::chrono::hours":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std::chrono::minutes":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std11::chrono::minutes":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std::chrono::seconds":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std11::chrono::seconds":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std::chrono::milliseconds":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std11::chrono::milliseconds":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std::chrono::microseconds":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std11::chrono::microseconds":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std::chrono::nanoseconds":"http://www.cplusplus.com/reference/chrono/duration/",
+	"std11::chrono::nanoseconds":"http://www.cplusplus.com/reference/chrono/duration/",
+	
 	}
 
 

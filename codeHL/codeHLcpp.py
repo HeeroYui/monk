@@ -16,8 +16,6 @@ listRegExp = [
 	  'code-storage-keyword'],
 	[ r'(bool|BOOL|char(16_t|32_t)?|double|float|u?int(8|16|32|64|128)?(_t)?|long|short|signed|size_t|unsigned|void|(I|U)(8|16|32|64|128))',
 	  'code-type'],
-	[ r'(((0(x|X)[0-9a-fA-F]*)|(\d+\.?\d*|\.\d+)((e|E)(\+|\-)?\d+)?)(L|l|UL|ul|u|U|F|f)?)',
-	  'code-number'],
 	[ r'(m_[A-Za-z_0-9])',
 	  'code-member'],
 	[ r'(( |\t)_[A-Za-z_0-9]*)',
@@ -37,7 +35,9 @@ listRegExp = [
 	[ r'(true|TRUE|false|FALSE)',
 	  '<code-operator'],
 	[ r'((\w+::)+\w+)',
-	  'code-class']
+	  'code-class'],
+	[ r'(((0(x|X)[0-9a-fA-F]*)|(\d+\.?\d*|\.\d+)((e|E)(\+|\-)?\d+)?)(L|l|UL|ul|u|U|F|f)?)',
+	  'code-number']
 ]
 
 def transcode(value):
