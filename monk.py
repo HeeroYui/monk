@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 # for path inspection:
 import sys
 import os
@@ -26,16 +26,16 @@ localArgument = myArg.parse()
 def usage():
 	# generic argument displayed : 
 	myArg.display()
-	print "		all"
-	print "			Build all (only for the current selected board) (bynary and packages)"
-	print "		clean"
-	print "			Clean all (same as previous)"
+	print("		all")
+	print("			Build all (only for the current selected board) (bynary and packages)")
+	print("		clean")
+	print("			Clean all (same as previous)")
 	listOfAllModule = monkModule.list_all_module_with_desc()
 	for mod in listOfAllModule:
-		print "		" + mod[0] + " / " + mod[0] + "-clean"
+		print("		" + mod[0] + " / " + mod[0] + "-clean")
 		if mod[1] != "":
-			print "			" + mod[1]
-	print "	ex: " + sys.argv[0] + " all"
+			print("			" + mod[1])
+	print("	ex: " + sys.argv[0] + " all")
 	exit(0)
 
 ##

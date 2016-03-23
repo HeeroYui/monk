@@ -560,14 +560,15 @@ def is_a_function(stack) :
 	if     stack[len(stack)-2] == '=' \
 	   and stack[len(stack)-1] == '0':
 		stack = stack[:len(stack)-2]
-	#can end with 2 possibilities : ')', 'const' or ')'
-	if    stack[len(stack)-1] == ')' \
-	   or (     stack[len(stack)-2] == ')' \
-	        and stack[len(stack)-1] == 'const')\
-	   or (     stack[len(stack)-2] == ')' \
-	        and stack[len(stack)-1] == 'noexcept')\
-	   or (     stack[len(stack)-3] == ')' \
-	        and stack[len(stack)-2] == 'const' \
-	        and stack[len(stack)-1] == 'noexcept'):
+	# find ')' element :
+	id = len(stack)-1
+	while id >= 0:
+		if stack[id] == ')':
+			break;
+		id -= 1
+	if id >= 0:
+		for elem in stack[id+1:]:
+			if elem not in ['const', 'noexcept', 'override']:
+				return False
 		return True
 	return False

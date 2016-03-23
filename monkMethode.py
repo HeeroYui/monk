@@ -8,6 +8,7 @@ class Methode(Node.Node):
 	def __init__(self, stack=[], file="", lineNumber=0, documentation=[], className = ""):
 		name = ""
 		type = 'methode'
+		self.override = False
 		self.virtual = False
 		self.virtualPure = False
 		self.static = False
@@ -62,6 +63,9 @@ class Methode(Node.Node):
 		if stack[0] == 'inline':
 			self.inline = True
 			stack = stack[1:]
+		if stack[len(stack)-1] == 'override':
+			self.override = True
+			stack = stack[:len(stack)-1]
 		if stack[len(stack)-1] == 'noexcept':
 			self.noexcept = True
 			stack = stack[:len(stack)-1]
@@ -152,6 +156,9 @@ class Methode(Node.Node):
 		if self.noexcept == True:
 			ret += " noexcept"
 			retDecorated += " " + module.display_color("noexcept")
+		if self.override == True:
+			ret += " override"
+			retDecorated += " " + module.display_color("override")
 		return [ret, retDecorated]
 	
 	##
@@ -207,5 +214,11 @@ class Methode(Node.Node):
 	##
 	def get_param(self):
 		return self.variable
+	##
+	## @brief Get Override parameter
+	## @return The requested override parameter
+	##
+	def get_override(self):
+		return self.override
 
 

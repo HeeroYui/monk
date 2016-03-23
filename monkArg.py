@@ -241,10 +241,10 @@ class MonkArg:
 	
 	
 	def display(self):
-		print "usage:"
+		print("usage:")
 		listOfPropertiesArg = "";
 		for element in self.m_listProperties :
 			listOfPropertiesArg += element.get_porperties()
-		print "	" + sys.argv[0] + listOfPropertiesArg + " ..."
+		print("	" + sys.argv[0] + listOfPropertiesArg + " ...")
 		for element in self.m_listProperties :
 			element.display()

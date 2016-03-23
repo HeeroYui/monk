@@ -28,8 +28,8 @@ class Module:
 		self.type='LIBRARY'
 		# Name of the module
 		self.name=moduleName
-		self.listDocFile = []
-		self.listTutorialFile = []
+		self.list_doc_file = []
+		self.list_tutorial_file = []
 		self.webSite = ""
 		self.webSource = ""
 		self.pathParsing = ""
@@ -139,6 +139,25 @@ class Module:
 						self.add_file_doc(fileCompleteName, pathBase)
 	
 	##
+	## @brief Sort a list of n element containing a list of element (order with the first)
+	## @param[in] value List to order
+	## @return ordered list
+	##
+	def sort_list_first_elem(self, value):
+		# order the list:
+		order_elem = []
+		for elem in value:
+			order_elem.append(elem[0])
+		order_elem.sort()
+		out = []
+		for elem in order_elem:
+			for old_val in value:
+				if elem == old_val[0]:
+					out.append(old_val)
+					break;
+		return out
+	
+	##
 	## @brief Add a documentation file at the parsing system
 	## @param[in] filename File To add at the parsing element system.
 	## @param[in] outPath output system file.
@@ -147,13 +166,14 @@ class Module:
 	def add_file_doc(self, filename, outPath):
 		debug.debug("adding file in documantation : '" + filename + "'");
 		done = False
-		for iii in range(0,len(self.listDocFile)):
-			if self.listDocFile[iii][0] > filename:
-				self.listDocFile.insert(iii, [filename, outPath])
+		for iii in range(0,len(self.list_doc_file)):
+			if self.list_doc_file[iii][0] > filename:
+				self.list_doc_file.insert(iii, [filename, outPath])
 				done = True
 				break
 		if done == False:
-			self.listDocFile.append([filename, outPath])
+			self.list_doc_file.append([filename, outPath])
+		self.list_doc_file = self.sort_list_first_elem(self.list_doc_file)
 	
 	##
 	## @brief Add a documentation file at the parsing system
@@ -165,13 +185,15 @@ class Module:
 		count = int(filename.split('/')[-1].split('_')[0])
 		debug.debug("adding file in documantation : '" + filename + "'");
 		done = False
-		for iii in range(0,len(self.listTutorialFile)):
-			if self.listTutorialFile[iii][0] > filename:
-				self.listTutorialFile.insert(iii, [filename, outPath])
+		for iii in range(0,len(self.list_tutorial_file)):
+			if self.list_tutorial_file[iii][0] > filename:
+				self.list_tutorial_file.insert(iii, [filename, outPath])
 				done = True
 				break
 		if done == False:
-			self.listTutorialFile.append([filename, outPath])
+			self.list_tutorial_file.append([filename, outPath])
+		self.list_tutorial_file = self.sort_list_first_elem(self.list_tutorial_file)
+		
 	
 	##
 	## @brief Add a file at the parsing system

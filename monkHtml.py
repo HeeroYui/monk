@@ -3,6 +3,7 @@ import monkDebug as debug
 import sys
 import monkTools as tools
 #import CppHeaderParser
+import os
 import re
 import codeBB
 import collections
@@ -292,18 +293,20 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 			ret += ' = 0'
 		if element['node'].get_constant() == True:
 			ret += module.display_color(' const')
-		
+		if element['node'].get_override() == True:
+			ret += module.display_color(' override')
+	
 	ret += ';'
 	ret += '<br/>'
 	return ret
 
-def generate_stupid_index_page(outFolder, header, footer, myLutinDoc):
+def generate_stupid_index_page(outFolder, header, footer, my_lutin_doc):
 	# create index.hml : 
 	filename = outFolder + "/index.html"
 	tools.create_directory_of_file(filename);
 	file = open(filename, "w")
 	file.write(header)
-	file.write("<h1>" + myLutinDoc.get_base_doc_node().get_name() + "</h1>");
+	file.write("<h1>" + my_lutin_doc.get_base_doc_node().get_name() + "</h1>");
 	file.write("<br/>");
 	file.write("TODO : Main page ...");
 	file.write("<br/>");
@@ -411,12 +414,39 @@ def generate_page(outFolder, header, footer, element, name_lib=""):
 		listBaseMethode = element.get_all_sub_type(['methode', 'variable'])
 		if len(listBaseMethode) != 0:
 			globalWrite = ""
+			globalWriteProperties = ""
+			globalWriteSignals = ""
 			displayLen = calculate_methode_size(listBaseMethode)
 			for elem in listBaseMethode:
 				if     'access' in elem.keys() \
 				   and elem['access'] == 'private':
 					continue
-				globalWrite += write_methode(elem, namespaceStack, displayLen)
+				find_special = False
+				if     'node' in elem.keys() \
+				   and elem['node'].get_node_type() == 'variable':
+					name = elem['node'].get_name()
+					if     len(name) > 8 \
+					   and name[:8] == "property":
+						globalWriteProperties += write_methode(elem, namespaceStack, displayLen)
+						find_special = True
+					elif     len(name) > 6 \
+					     and name[:6] == "signal":
+						globalWriteSignals += write_methode(elem, namespaceStack, displayLen)
+						find_special = True
+				if find_special == False:
+					globalWrite += write_methode(elem, namespaceStack, displayLen)
+			if globalWriteProperties != "":
+				file.write('<h2>Properties:</h2>\n')
+				file.write('<pre>\n');
+				file.write(globalWriteProperties);
+				file.write('</pre>\n')
+				file.write('<br/>\n')
+			if globalWriteSignals != "":
+				file.write('<h2>Signals:</h2>\n')
+				file.write('<pre>\n');
+				file.write(globalWriteSignals);
+				file.write('</pre>\n')
+				file.write('<br/>\n')
 			if globalWrite != "":
 				file.write('<h2>Synopsis:</h2>\n')
 				file.write('<pre>\n');
@@ -589,38 +619,38 @@ def generate_page(outFolder, header, footer, element, name_lib=""):
 
 
 
-def generate(myLutinDoc, outFolder) :
-	myDoc = myLutinDoc.get_base_doc_node()
+def generate(my_lutin_doc, outFolder) :
+	my_doc = my_lutin_doc.get_base_doc_node()
 	tools.copy_file(tools.get_current_path(__file__)+"/theme/base.css", outFolder+"/base.css")
 	tools.copy_file(tools.get_current_path(__file__)+"/theme/menu.css", outFolder+"/menu.css")
 	# create common header
-	genericHeader  = '<!DOCTYPE html>\n'
-	genericHeader += '<html>\n'
-	genericHeader += '<head>\n'
-	genericHeader += '	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">\n'
-	genericHeader += '	<title>' + myDoc.get_name() + ' Library</title>\n'
-	genericHeader += '	<link rel="stylesheet" href="base.css">\n'
-	genericHeader += '	<link rel="stylesheet" href="menu.css">\n'
-	genericHeader += '</head>\n'
-	genericHeader += '<body>\n'
-	genericHeader += '	<div class="navbar navbar-fixed-top">\n'
-	genericHeader += '		<div class="container">\n'
-	if myDoc.get_node_type() == 'library':
-		genericHeader += '			<h1><a href="index.html">' + myDoc.get_name() + ' library</a></h1>\n'
+	generic_header  = '<!DOCTYPE html>\n'
+	generic_header += '<html>\n'
+	generic_header += '<head>\n'
+	generic_header += '	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">\n'
+	generic_header += '	<title>' + my_doc.get_name() + ' Library</title>\n'
+	generic_header += '	<link rel="stylesheet" href="base.css">\n'
+	generic_header += '	<link rel="stylesheet" href="menu.css">\n'
+	generic_header += '</head>\n'
+	generic_header += '<body>\n'
+	generic_header += '	<div class="navbar navbar-fixed-top">\n'
+	generic_header += '		<div class="container">\n'
+	if my_doc.get_node_type() == 'library':
+		generic_header += '			<h1><a href="index.html">' + my_doc.get_name() + ' library</a></h1>\n'
 	else:
-		genericHeader += '			<h1><a href="index.html">' + myDoc.get_name() + '</a></h1>\n'
-	if myLutinDoc.get_website_sources() != '':
-		genericHeader += '			<h4><a href="' + myLutinDoc.get_website_sources() + '">&nbsp;&nbsp;&nbsp;[ sources ]</a></h4>\n'
-	genericHeader += '<h3>API:</h3>'
-	genericHeader += '			<div id="menu">\n'
-	#genericHeader += '				<h2>' + myDoc.moduleName + '</h2>\n'
-	genericHeader += generate_menu(myDoc)
-	#genericHeader += '				<h3> </h3>\n'
-	genericHeader += '			</div>\n'
+		generic_header += '			<h1><a href="index.html">' + my_doc.get_name() + '</a></h1>\n'
+	if my_lutin_doc.get_website_sources() != '':
+		generic_header += '			<h4><a href="' + my_lutin_doc.get_website_sources() + '">&nbsp;&nbsp;&nbsp;[ sources ]</a></h4>\n'
+	generic_header += '<h3>API:</h3>'
+	generic_header += '			<div id="menu">\n'
+	#generic_header += '				<h2>' + my_doc.moduleName + '</h2>\n'
+	generic_header += generate_menu(my_doc)
+	#generic_header += '				<h3> </h3>\n'
+	generic_header += '			</div>\n'
 	# TODO : add Generic doc main point.
-	if len(myLutinDoc.listDocFile) > 0:
+	if len(my_lutin_doc.list_doc_file) > 0:
 		docList = ""
-		for docInputName,outpath in myLutinDoc.listDocFile:
+		for docInputName,outpath in my_lutin_doc.list_doc_file:
 			outputFileName = outFolder + "/" + outpath.replace('/','_') +".html"
 			outputFileName = outputFileName.split('/')[-1]
 			name = outputFileName.split('_')[-1][:-5]
@@ -630,14 +660,14 @@ def generate(myLutinDoc, outFolder) :
 			docList += '<li><a href="' + outputFileName + '">' + capitalise_first_letter(camel_case_decode(name)) + '</a></li>\n'
 			docList += '</ul>'
 		if docList != "":
-			genericHeader += '<h3>Documentation:</h3>'
-			genericHeader += '<div id="menu">\n'
-			genericHeader += docList
-			genericHeader += '</div>\n'
+			generic_header += '<h3>Documentation:</h3>'
+			generic_header += '<div id="menu">\n'
+			generic_header += docList
+			generic_header += '</div>\n'
 	# TODO : add Tutorial doc main point.
-	if len(myLutinDoc.listTutorialFile) > 0:
+	if len(my_lutin_doc.list_tutorial_file) > 0:
 		tutorialList = ""
-		for docInputName,outpath in myLutinDoc.listTutorialFile:
+		for docInputName,outpath in my_lutin_doc.list_tutorial_file:
 			outputFileName = outFolder + "/" + outpath+".html"
 			outputFileName = outputFileName.split('/')[-1]
 			name = outputFileName.split('_')[-1][:-5]
@@ -647,76 +677,78 @@ def generate(myLutinDoc, outFolder) :
 			tutorialList += '<li><a href="tutorial_' + outputFileName + '">' + capitalise_first_letter(camel_case_decode(name)) + '</a></li>\n'
 			tutorialList += '</ul>'
 		if tutorialList != "":
-			genericHeader += '<h3>Tutorials:</h3>'
-			genericHeader += '<div id="menu">\n'
-			genericHeader += tutorialList
-			genericHeader += '</div>\n'
+			generic_header += '<h3>Tutorials:</h3>'
+			generic_header += '<div id="menu">\n'
+			generic_header += tutorialList
+			generic_header += '</div>\n'
 	
 	
-	localWebsite = myLutinDoc.get_website()
+	localWebsite = my_lutin_doc.get_website()
 	# add other libs entry point :
 	allModule = module.get_all_module()
 	if len(allModule) != 1:
-		genericHeader += '<br/>'
-		genericHeader += '<h3>Associate libraries:</h3>'
-		genericHeader += '<div id="menu">\n'
+		generic_header += '<br/>'
+		generic_header += '<h3>Associate libraries:</h3>'
+		generic_header += '<div id="menu">\n'
 		for modd in allModule:
 			if modd.type == 'application':
 				continue
-			if modd.name == myLutinDoc.name:
+			if modd.name == my_lutin_doc.name:
 				continue
-			genericHeader += '<ul class="niveau1">'
+			generic_header += '<ul class="niveau1">'
 			link = node.get_doc_website_page_relative(localWebsite, modd.get_website())
 			if link[-1] != "/":
 				link += "/"
-			genericHeader += '<li><a href="' + link + 'index.html">' + modd.name + '</a></li>\n'
-			genericHeader += '</ul>'
-		genericHeader += '</div>\n'
-	genericHeader += "<br/>\n"
-	genericHeader += "<br/>\n"
-	genericHeader += "<br/>\n"
-	genericHeader += "<br/>\n"
-	genericHeader += "<br/>\n"
-	genericHeader += "<br/>\n"
-	genericHeader += "		</div>\n"
-	genericHeader += "	</div>\n"
-	genericHeader += "	<div class=\"container\" id=\"content\">\n"
+			generic_header += '<li><a href="' + link + 'index.html">' + modd.name + '</a></li>\n'
+			generic_header += '</ul>'
+		generic_header += '</div>\n'
+	generic_header += "<br/>\n"
+	generic_header += "<br/>\n"
+	generic_header += "<br/>\n"
+	generic_header += "<br/>\n"
+	generic_header += "<br/>\n"
+	generic_header += "<br/>\n"
+	generic_header += "		</div>\n"
+	generic_header += "	</div>\n"
+	generic_header += "	<div class=\"container\" id=\"content\">\n"
 	
-	genericFooter  = "	</div>\n"
+	generic_footer  = "	</div>\n"
 	googleData = tools.file_read_data("google-analytics.txt")
 	if googleData != "":
 		debug.info("insert Google analytics Data")
-		genericFooter += googleData
-	genericFooter += "</body>\n"
-	genericFooter += "</html>\n"
+		generic_footer += googleData
+	generic_footer += "</body>\n"
+	generic_footer += "</html>\n"
 	
-	# create index.hml : 
-	generate_stupid_index_page(outFolder, genericHeader, genericFooter, myLutinDoc)
+	# create index.hml:
+	generate_stupid_index_page(outFolder, generic_header, generic_footer, my_lutin_doc)
 	
-	# create the namespace index properties :
-	generate_page(outFolder, genericHeader, genericFooter, myDoc, name_lib=myLutinDoc.name )
+	# create the namespace index properties:
+	generate_page(outFolder, generic_header, generic_footer, my_doc, name_lib=my_lutin_doc.name)
 	
-	for iii in range(0, len(myLutinDoc.listTutorialFile)) :
-		docInputName,outpath = myLutinDoc.listTutorialFile[iii]
+	for iii in range(0, len(my_lutin_doc.list_tutorial_file)) :
+		docInputName,outpath = my_lutin_doc.list_tutorial_file[iii]
 		
-		debug.print_element("tutorial", myLutinDoc.name, "<==", docInputName)
-		outputFileName = outFolder + "/" + outpath.replace('/','_') +".html"
-		debug.debug("output file : " + outputFileName)
+		debug.print_element("tutorial", my_lutin_doc.name, "<==", docInputName)
+		if outpath[0] == '/':
+			outpath = outpath[1:]
+		outputFileName = os.path.join(outFolder, outpath.replace('/','_') + ".html")
+		debug.debug("output file : " + outputFileName + " out path=" + outFolder + " baseName=" + outpath)
 		tools.create_directory_of_file(outputFileName)
 		name = outputFileName.split('_')[-1][:-5]
 		inData = tools.file_read_data(docInputName)
 		if inData == "":
 			continue
-		outData = genericHeader
+		outData = generic_header
 		localHeader = ""
 		localHeader += "=?=" + camel_case_decode(name) + "=?=\n___________________________\n"
 		if iii != 0:
-			previousName, previousOutpath = myLutinDoc.listTutorialFile[iii-1]
+			previousName, previousOutpath = my_lutin_doc.list_tutorial_file[iii-1]
 			previousName = previousName.split('_')[-1][:-3]
 			previousOutpath = previousOutpath.split('/')[-1]
 			localHeader += "[left][tutorial[" + previousOutpath + " | Previous: " + capitalise_first_letter(camel_case_decode(previousName)) + "]][/left] "
-		if iii != len(myLutinDoc.listTutorialFile)-1:
-			nextName, nextOutpath = myLutinDoc.listTutorialFile[iii+1]
+		if iii != len(my_lutin_doc.list_tutorial_file)-1:
+			nextName, nextOutpath = my_lutin_doc.list_tutorial_file[iii+1]
 			nextName = nextName.split('_')[-1][:-3]
 			nextOutpath = nextOutpath.split('/')[-1]
 			localHeader += " [right][tutorial[" + nextOutpath + " | Next: " + capitalise_first_letter(camel_case_decode(nextName)) + "]][/right]"
@@ -724,18 +756,18 @@ def generate(myLutinDoc, outFolder) :
 		outData += codeBB.transcode(localHeader)
 		#debug.info(localHeader)
 		outData += codeBB.transcode(inData)
-		outData += genericFooter
+		outData += generic_footer
 		tools.file_write_data(outputFileName, outData)
 	
-	for docInputName,outpath in myLutinDoc.listDocFile :
-		debug.print_element("doc", myLutinDoc.name, "<==", docInputName)
+	for docInputName,outpath in my_lutin_doc.list_doc_file :
+		debug.print_element("doc", my_lutin_doc.name, "<==", docInputName)
 		outputFileName = outFolder + outpath + ".html"
 		debug.debug("output file : " + outputFileName)
 		tools.create_directory_of_file(outputFileName)
 		inData = tools.file_read_data(docInputName)
 		if inData == "":
 			continue
-		outData = genericHeader + codeBB.transcode(inData) + genericFooter
+		outData = generic_header + codeBB.transcode(inData) + generic_footer
 		tools.file_write_data(outputFileName, outData)
 
 
