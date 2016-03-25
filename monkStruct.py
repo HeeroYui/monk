@@ -7,7 +7,7 @@ class Struct(Node.Node):
 		name = ""
 		Node.Node.__init__(self, 'struct', name, file, lineNumber, documentation)
 		self.access = "public"
-		self.subList = []
+		self.sub_list = []
 		
 	
 	def to_str(self) :

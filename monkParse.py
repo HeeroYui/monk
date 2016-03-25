@@ -21,6 +21,8 @@ import monkMethode as Methode
 import monkEnum as Enum
 import monkVariable as Variable
 import monkNode as Node
+import monkUsing as Using
+import monkTypedef as Typedef
 
 tokens = [
 	'NUMBER',
@@ -178,24 +180,53 @@ lex.lex()
 ## @return The new table. ex: ['class', 'Bar::Foo']
 ##
 def create_compleate_class_name(table):
-	debug.warning("table = " + str(table))
-	if "::" not in "".join(table):
-		out = table
-	else:
-		# we need to convert it :
-		out = []
-		for name in table:
-			if len(out) == 0: 
-				out.append(name)
-			elif     name == ":" \
-			     and out[-1].endswith(":"):
-				out[-1] += name
-			elif out[-1].endswith("::"):
-				out[-2] += out[-1] + name
-				del out[-1]
-			else:
-				out.append(name)
+	debug.verbose("table = " + str(table))
+	# separate ["<XXX"] in ["<", "XXX"]
+	out = []
+	for name in table:
+		if     len(name) > 1 \
+		   and name[0] == "<":
+			out.append('<')
+			out.append(name[1:])
+		else:
+			out.append(name)
 	table = out
+	# convert [":", ":"] in ["::"]:
+	out = []
+	for name in table:
+		if len(out) == 0: 
+			out.append(name)
+		elif     name == ":" \
+		     and out[-1] == ":":
+			out[-1] += name
+		else:
+			out.append(name)
+	table = out
+	# convert ["|", "|"] in ["||"]:
+	out = []
+	for name in table:
+		if len(out) == 0: 
+			out.append(name)
+		elif     name == "|" \
+		     and out[-1] == "|":
+			out[-1] += name
+		else:
+			out.append(name)
+	table = out
+	# convert ["&", "&"] in ["&&"]:
+	out = []
+	for name in table:
+		if len(out) == 0: 
+			out.append(name)
+		elif     name == "&" \
+		     and out[-1] == "&&":
+			out[-1] += name
+		else:
+			out.append(name)
+	table = out
+	#
+	
+	# join operator ...
 	if 'operator' not in "".join(table):
 		out = table
 	else:
@@ -212,7 +243,7 @@ def create_compleate_class_name(table):
 				out[-1] += name
 			else:
 				out.append(name)
-	debug.warning("    ==> out = " + str(out))
+	debug.verbose("    ==> out = " + str(out))
 	return out
 
 
@@ -273,6 +304,7 @@ class parse_file():
 		lex.input(headerFileStr)
 		self.cur_line = 0
 		self.cur_char = 0
+		self.count_pthese = 0
 		while True:
 			tok = lex.token()
 			if not tok:
@@ -319,48 +351,62 @@ class parse_file():
 			if tok.type == 'COMMENT_SINGLELINE_DOC':
 				self.last_comment.append(tok.value)
 			if tok.type == 'OPEN_BRACE':
-				# When we open a brace, this is the time to parse the stack ...
-				# Clean the stack : (remove \t\r\n , and concatenate the 'xx', ':', ':', 'yy'  in 'xx::yy',
-				self.name_stack = create_compleate_class_name(self.name_stack)
-				if len(self.name_stack) <= 0:
-					#open brace with no name ...
-					self.brace_type_push('empty', [])
-				elif is_a_function(self.name_stack):
-					# need to parse sub function internal description...
-					self.sub_module_count_brace = 1
-					self.brace_type_push('function', self.name_stack)
-					debug.verbose("openBrace *** " + str(self.name_stack))
-				elif 'namespace' in self.name_stack:
-					self.brace_type_push('namespace', self.name_stack)
-				elif 'class' in self.name_stack:
-					self.brace_type_push('class', self.name_stack)
-				elif 'enum' in self.name_stack:
-					self.brace_type_push('enum', self.name_stack)
-				elif 'struct' in self.name_stack:
-					self.brace_type_push('struct', self.name_stack)
-				elif 'typedef' in self.name_stack:
-					self.brace_type_push('typedef', self.name_stack)
-				elif 'union' in self.name_stack:
-					self.brace_type_push('union', self.name_stack)
+				if self.count_pthese >= 1:
+					# special case of lamba declaration inside initialisation of constructor
+					self.name_stack.append(tok.value)
+					debug.info("plop 0 " +str(self.count_pthese))
 				else:
-					self.brace_type_push('unknow', self.name_stack)
-				self.stack = []
-				self.name_stack = []
-				self.last_comment = []
-			elif tok.type == 'CLOSE_BRACE':
-				if len(self.name_stack) != 0:
-					if self.previous_is('enum') == True:
-						self.brace_type_append('enum list', self.name_stack);
+					# When we open a brace, this is the time to parse the stack ...
+					# Clean the stack : (remove \t\r\n , and concatenate the 'xx', ':', ':', 'yy'  in 'xx::yy',
+					self.name_stack = create_compleate_class_name(self.name_stack)
+					if len(self.name_stack) <= 0:
+						#open brace with no name ...
+						self.brace_type_push('empty', [])
+					elif is_a_function(self.name_stack):
+						# need to parse sub function internal description...
+						self.sub_module_count_brace = 1
+						self.brace_type_push('function', self.name_stack)
+						debug.verbose("openBrace *** " + str(self.name_stack))
+					elif 'namespace' in self.name_stack:
+						self.brace_type_push('namespace', self.name_stack)
+					elif 'class' in self.name_stack:
+						self.brace_type_push('class', self.name_stack)
+					elif 'enum' in self.name_stack:
+						self.brace_type_push('enum', self.name_stack)
+					elif 'struct' in self.name_stack:
+						self.brace_type_push('struct', self.name_stack)
+					elif 'typedef' in self.name_stack:
+						self.brace_type_push('typedef', self.name_stack)
+					elif 'using' in self.name_stack:
+						self.brace_type_push('using', self.name_stack)
+					elif 'union' in self.name_stack:
+						self.brace_type_push('union', self.name_stack)
 					else:
-						debug.warning(self.gen_debug_space() + "end brace DROP : " + str(self.name_stack));
-				self.stack = []
-				self.name_stack = []
-				self.last_comment = []
-				self.brace_type_pop()
-				self.name_stack = create_compleate_class_name(self.name_stack)
+						self.brace_type_push('unknow', self.name_stack)
+					self.stack = []
+					self.name_stack = []
+					self.last_comment = []
+			elif tok.type == 'CLOSE_BRACE':
+				if self.count_pthese >= 1:
+					debug.info("plop 2 " +str(self.count_pthese))
+					# special case of lamba declaration inside initialisation of constructor
+					self.name_stack.append(tok.value)
+				else:
+					if len(self.name_stack) != 0:
+						if self.previous_is('enum') == True:
+							self.brace_type_append('enum list', self.name_stack);
+						else:
+							debug.warning(self.gen_debug_space() + "end brace DROP : " + str(self.name_stack));
+					self.stack = []
+					self.name_stack = []
+					self.last_comment = []
+					self.brace_type_pop()
+					self.name_stack = create_compleate_class_name(self.name_stack)
 			if tok.type == 'OPEN_PAREN':
+				self.count_pthese += 1
 				self.name_stack.append(tok.value)
 			elif tok.type == 'CLOSE_PAREN':
+				self.count_pthese -= 1
 				self.name_stack.append(tok.value)
 			elif tok.type == 'OPEN_SQUARE_BRACKET':
 				self.name_stack.append(tok.value)
@@ -396,7 +442,7 @@ class parse_file():
 			      or tok.type == 'CHAR_LITERAL':
 				self.name_stack.append(tok.value)
 			elif tok.type == 'COLON':
-				if self.name_stack[0] in Node.accessList:
+				if self.name_stack[0] in Node.access_list:
 					debug.debug(self.gen_debug_space() + "change visibility : " + self.name_stack[0]);
 					self.brace_type_change_access(self.name_stack[0])
 					self.name_stack = []
@@ -404,32 +450,41 @@ class parse_file():
 				else :
 					self.name_stack.append(tok.value)
 			elif tok.type == 'SEMI_COLON':
-				if len(self.name_stack) != 0:
-					self.name_stack = create_compleate_class_name(self.name_stack)
-					if is_a_function(self.name_stack):
-						self.brace_type_append('function', self.name_stack);
-					elif 'namespace' in self.name_stack:
-						debug.debug(self.gen_debug_space() + "find a namespace DECLARATION : " + str(self.name_stack));
-					elif 'class' in self.name_stack:
-						debug.debug(self.gen_debug_space() + "find a class     DECLARATION : " + str(self.name_stack));
-					elif 'enum' in self.name_stack:
-						debug.debug(self.gen_debug_space() + "find a enum      DECLARATION : " + str(self.name_stack));
-					elif 'struct' in self.name_stack:
-						debug.debug(self.gen_debug_space() + "find a struct    DECLARATION : " + str(self.name_stack));
-					elif 'typedef' in self.name_stack:
-						debug.info(self.gen_debug_space() + "find a typedef   DECLARATION : " + str(self.name_stack));
-					elif 'union' in self.name_stack:
-						debug.debug(self.gen_debug_space() + "find a union     DECLARATION : " + str(self.name_stack));
-					else:
-						if self.previous_is('enum') == True:
-							self.brace_type_append('enum list', self.name_stack);
+				if self.count_pthese >= 1:
+					debug.info("plop 3 " +str(self.count_pthese))
+					# special case of lamba declaration inside initialisation of constructor
+					self.name_stack.append(tok.value)
+				else:
+					if len(self.name_stack) != 0:
+						self.name_stack = create_compleate_class_name(self.name_stack)
+						if is_a_function(self.name_stack):
+							self.brace_type_append('function', self.name_stack);
+						elif 'namespace' in self.name_stack:
+							debug.debug(self.gen_debug_space() + "find a namespace DECLARATION : " + str(self.name_stack));
+						elif 'class' in self.name_stack:
+							debug.debug(self.gen_debug_space() + "find a class     DECLARATION : " + str(self.name_stack));
+						elif 'enum' in self.name_stack:
+							debug.debug(self.gen_debug_space() + "find a enum      DECLARATION : " + str(self.name_stack));
+						elif 'struct' in self.name_stack:
+							debug.debug(self.gen_debug_space() + "find a struct    DECLARATION : " + str(self.name_stack));
+						elif 'typedef' in self.name_stack:
+							debug.warning(self.gen_debug_space() + "find a typedef    DECLARATION : " + str(self.name_stack) + " ==> lose it ...");
+							#self.brace_type_push('typedef', self.name_stack);
+						elif 'using' in self.name_stack:
+							debug.info(self.gen_debug_space() + "find a using      DECLARATION : " + str(self.name_stack));
+							self.brace_type_append('using', self.name_stack);
+						elif 'union' in self.name_stack:
+							debug.debug(self.gen_debug_space() + "find a union     DECLARATION : " + str(self.name_stack));
 						else:
-							# TODO : Check if it is true in all case : 
-							self.brace_type_append('variable', self.name_stack);
-							#debug.warning(self.gen_debug_space() + "variable : " + str(self.name_stack));
-				self.stack = []
-				self.name_stack = []
-				self.last_comment = []
+							if self.previous_is('enum') == True:
+								self.brace_type_append('enum list', self.name_stack);
+							else:
+								# TODO : Check if it is true in all case : 
+								self.brace_type_append('variable', self.name_stack);
+								#debug.warning(self.gen_debug_space() + "variable : " + str(self.name_stack));
+					self.stack = []
+					self.name_stack = []
+					self.last_comment = []
 		#self.debug_display();
 	
 	def debug_display(self):
@@ -449,9 +504,9 @@ class parse_file():
 		elif type == 'struct':
 			ret = Struct.Struct(stack, self.header_file_name, self.cur_line, self.last_comment)
 		elif type == 'typedef':
-			#ret = Namespace.Namespace(stack, self.header_file_name, self.cur_line)
-			# TODO ...
-			pass
+			ret = Typedef.Typedef(stack, self.header_file_name, self.cur_line)
+		elif type == 'using':
+			ret = Using.Using(stack, self.header_file_name, self.cur_line)
 		elif type == 'union':
 			ret = Union.Union(stack, self.header_file_name, self.cur_line, self.last_comment)
 		elif type == 'function':
@@ -522,7 +577,7 @@ class parse_file():
 		self.brace_depth_type.pop()
 	
 	def brace_type_change_access(self, newOne):
-		if newOne not in Node.accessList:
+		if newOne not in Node.access_list:
 			debug.error("unknow access type : " + newOne)
 			return
 		id = len(self.brace_depth_type)-1
@@ -564,6 +619,9 @@ def is_a_function(stack) :
 		stack = res
 	if     stack[len(stack)-2] == '=' \
 	   and stack[len(stack)-1] == '0':
+		stack = stack[:len(stack)-2]
+	if     stack[len(stack)-2] == '=' \
+	   and stack[len(stack)-1] == 'delete':
 		stack = stack[:len(stack)-2]
 	# find ')' element :
 	id = len(stack)-1

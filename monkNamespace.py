@@ -8,7 +8,7 @@ class Namespace(Node.Node):
 			debug.error("Can not parse namespace : " + str(stack))
 		Node.Node.__init__(self, 'namespace', stack[1], file, lineNumber, documentation)
 		# enable sub list
-		self.subList = []
+		self.sub_list = []
 		
 		debug.verbose("find namespace : " + self.to_str())
 	

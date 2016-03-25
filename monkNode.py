@@ -2,7 +2,7 @@
 import monkDebug as debug
 import monkModule as module
 
-accessList = ['private', 'protected', 'public']
+access_list = ['private', 'protected', 'public']
 
 def debug_space(level):
 	ret = ""
@@ -13,23 +13,23 @@ def debug_space(level):
 genericUID = 0
 
 class Node():
-	def __init__(self, type, name="", file="", lineNumber=0, documentation=[]):
+	def __init__(self, type, name="", file="", line_number=0, documentation=[]):
 		global genericUID
 		genericUID+=1
 		self.uid = genericUID
-		self.documenatationCode = []
-		self.nodeType = type
+		self.documenatation_code = []
+		self.node_type = type
 		self.name = name
 		self.doc = None
-		self.fileName = file
-		self.lineNumber = lineNumber
-		self.subList = None
+		self.file_name = file
+		self.line_number = line_number
+		self.sub_list = None
 		self.access = None
 		# namespace elements : (set when all element are parsed ...
 		self.namespace = []
-		self.moduleLink = None # this is a link on the main application node or library node (usefull to get the website ...)
-		self.hiddenRequest = False # @not-in-doc
-		self.previousRequest = False # @previous
+		self.module_link = None # this is a link on the main application node or library node (usefull to get the website ...)
+		self.hidden_request = False # @not-in-doc
+		self.previous_request = False # @previous
 		self.template = []
 		self.add_doc(documentation)
 	
@@ -40,7 +40,7 @@ class Node():
 		return self.to_str()
 	
 	def get_node_type(self):
-		return self.nodeType
+		return self.node_type
 	
 	def get_name(self):
 		ret = ""
@@ -65,18 +65,18 @@ class Node():
 	
 	def add_doc(self, doc):
 		for element in doc:
-			self.documenatationCode.append(element)
+			self.documenatation_code.append(element)
 			if element.find("@not-in-doc") != -1 :
-				self.hiddenRequest = True
+				self.hidden_request = True
 			if element.find("@previous") != -1 :
-				self.previousRequest = True
+				self.previous_request = True
 			
 	
 	def get_request_hidden(self):
-		return self.hiddenRequest
+		return self.hidden_request
 	
 	def get_request_in_previous(self):
-		return self.previousRequest
+		return self.previous_request
 	
 	
 	def get_displayable_name(self):
@@ -91,16 +91,16 @@ class Node():
 	
 	def get_doc(self):
 		#debug.info(str(self.doc))
-		if len(self.documenatationCode) > 0:
+		if len(self.documenatation_code) > 0:
 			ret = ""
 			isFirst = True
-			for req in self.documenatationCode:
+			for req in self.documenatation_code:
 				if isFirst == False:
 					ret += '\n'
 				isFirst = False
 				ret += req
 			return ret
-		if self.nodeType not in ['methode']:
+		if self.node_type not in ['methode']:
 			return ""
 		#try to get previous element : 
 		if len(self.namespace) == 0:
@@ -130,35 +130,35 @@ class Node():
 			heveMethode, pointerMethode = element.have_methode(self.name)
 			if heveMethode == False:
 				continue
-			if len(pointerMethode.documenatationCode) != 0:
+			if len(pointerMethode.documenatation_code) != 0:
 				return pointerMethode.get_doc()
 		
 		return ""
 	
 	def get_lib_name(self):
-		if self.moduleLink == None:
+		if self.module_link == None:
 			return None
-		return self.moduleLink.get_base_doc_node().get_name()
+		return self.module_link.get_base_doc_node().get_name()
 	
 	def debug_display(self, level=0, access = None):
 		if access == 'private':
-			debug.info(debug_space(level) + "- " + self.nodeType + " => " + self.name)
+			debug.info(debug_space(level) + "- " + self.node_type + " => " + self.name)
 		elif access == 'protected':
-			debug.info(debug_space(level) + "# " + self.nodeType + " => " + self.name)
+			debug.info(debug_space(level) + "# " + self.node_type + " => " + self.name)
 		elif access == 'public':
-			debug.info(debug_space(level) + "+ " + self.nodeType + " => " + self.name)
+			debug.info(debug_space(level) + "+ " + self.node_type + " => " + self.name)
 		else:
-			debug.info(debug_space(level) + self.nodeType + " => " + self.name)
-		if self.subList!= None:
-			for element in self.subList:
+			debug.info(debug_space(level) + self.node_type + " => " + self.name)
+		if self.sub_list!= None:
+			for element in self.sub_list:
 				if 'access' in element.keys():
 					element['node'].debug_display(level+1, element['access'])
 				else:
 					element['node'].debug_display(level+1)
 	
 	def set_access(self, access):
-		if access not in accessList:
-			debug.warning("This is not a valid access : '" + access + "' : availlable : " + str(accessList))
+		if access not in access_list:
+			debug.warning("This is not a valid access : '" + access + "' : availlable : " + str(access_list))
 			return
 		if self.access == None:
 			debug.error("This Node does not support acces configuration...")
@@ -170,18 +170,18 @@ class Node():
 	
 	def append(self, newSubElement):
 		# just add it in a sub List :
-		if self.subList == None:
-			debug.error("can not add a '" + newSubElement.nodeType + "' at this '" + self.nodeType + "'")
+		if self.sub_list == None:
+			debug.error("can not add a '" + newSubElement.node_type + "' at this '" + self.node_type + "'")
 			return
 		if newSubElement.get_node_type() != 'namespace':
 			if self.access == None:
-				self.subList.append({'node' : newSubElement})
+				self.sub_list.append({'node' : newSubElement})
 			else:
-				self.subList.append({'access' : self.access, 'node' : newSubElement})
+				self.sub_list.append({'access' : self.access, 'node' : newSubElement})
 			return
 		
 		# check if the element already exist
-		for element in self.subList:
+		for element in self.sub_list:
 			if element['node'].get_node_type() == 'namespace':
 				if element['node'].get_name() == newSubElement.get_name():
 					debug.verbose("fusionate with previous declaration")
@@ -189,16 +189,16 @@ class Node():
 					return
 		# normal case adding :
 		if self.access == None:
-			self.subList.append({'node' : newSubElement})
+			self.sub_list.append({'node' : newSubElement})
 		else:
-			self.subList.append({'access' : self.access, 'node' : newSubElement})
+			self.sub_list.append({'access' : self.access, 'node' : newSubElement})
 	
 	##
 	## @ brief only for namespace :
 	## 
 	##
 	def fusion(self, addedElement):
-		for element in addedElement.subList:
+		for element in addedElement.sub_list:
 			self.append(element['node'])
 	
 	##
@@ -209,13 +209,13 @@ class Node():
 	##
 	def get_all_sub_type(self, type='all', sorted = False):
 		if type == 'all':
-			return self.subList
+			return self.sub_list
 		if isinstance(type, list) == False:
 			type = [type]
-		if self.subList == None:
+		if self.sub_list == None:
 			return []
 		ret = []
-		for element in self.subList:
+		for element in self.sub_list:
 			if element['node'].get_node_type() in type:
 				ret.append(element)
 		if sorted == True:
@@ -224,9 +224,9 @@ class Node():
 		return ret
 	
 	def get_doc_website_page(self):
-		if self.moduleLink == None:
+		if self.module_link == None:
 			return ""
-		ret = self.moduleLink.get_website()
+		ret = self.module_link.get_website()
 		if ret[-1] != '/':
 			ret += '/'
 		ret += self.get_node_type()
@@ -266,15 +266,15 @@ class Node():
 		return ret
 	
 	def set_module_link(self, module):
-		self.moduleLink = module
+		self.module_link = module
 		# set for all sub elements ...
-		if self.subList == None:
+		if self.sub_list == None:
 			return
-		if self.nodeType in ['class', 'namespace', 'struct']:
-			for element in self.subList:
+		if self.node_type in ['class', 'namespace', 'struct']:
+			for element in self.sub_list:
 				element['node'].set_module_link(module)
-		elif self.nodeType in ['library', 'application']:
-			for element in self.subList:
+		elif self.node_type in ['library', 'application']:
+			for element in self.sub_list:
 				element['node'].set_module_link(module)
 	
 	def set_namespace(self, hierarchy = []):
@@ -283,16 +283,16 @@ class Node():
 		for tmpName in hierarchy:
 			self.namespace.append(tmpName)
 		# set for all sub elements ...
-		if self.subList == None:
+		if self.sub_list == None:
 			return
-		if self.nodeType in ['class', 'namespace', 'struct']:
-			for element in self.subList:
+		if self.node_type in ['class', 'namespace', 'struct']:
+			for element in self.sub_list:
 				hierarchy.append(self.name)
 				element['node'].set_namespace(hierarchy)
 				#debug.info(" ==> " + str(element['node'].get_namespace()))
 				hierarchy.pop()
-		elif self.nodeType in ['library', 'application']:
-			for element in self.subList:
+		elif self.node_type in ['library', 'application']:
+			for element in self.sub_list:
 				element['node'].set_namespace()
 				#debug.info(" ==> " + str(element['node'].get_namespace()))
 	
@@ -301,19 +301,19 @@ class Node():
 	
 	def complete_display(self):
 		debug.info(str(self.namespace) + ' : ' + self.name)
-		if self.subList == None:
+		if self.sub_list == None:
 			return
-		for element in self.subList:
+		for element in self.sub_list:
 			element['node'].complete_display()
 	
 	def find(self, list):
-		debug.verbose("find : " + str(list) + " in " + self.nodeType + "(" + self.name + ")")
+		debug.verbose("find : " + str(list) + " in " + self.node_type + "(" + self.name + ")")
 		if len(list) == 0:
 			return None
-		if self.nodeType in ['library', 'application']:
-			if self.subList == None:
+		if self.node_type in ['library', 'application']:
+			if self.sub_list == None:
 				return None
-			for element in self.subList:
+			for element in self.sub_list:
 				ret = element['node'].find(list)
 				if ret != None:
 					return ret
@@ -323,12 +323,12 @@ class Node():
 		tmpList = list[1:]
 		if len(tmpList) == 0:
 			return self
-		elif self.nodeType not in ['class', 'namespace', 'struct']:
+		elif self.node_type not in ['class', 'namespace', 'struct']:
 			# have other sub element and other elemetn than upper can have sub element ...
 			return None
-		if self.subList == None:
+		if self.sub_list == None:
 			return None
-		for element in self.subList:
+		for element in self.sub_list:
 			ret = element['node'].find(tmpList)
 			if ret != None:
 				return ret
@@ -338,8 +338,8 @@ class Node():
 	def get_whith_specific_parrent(self, parrentName):
 		ret = []
 		# set for all sub elements ...
-		if self.subList != None:
-			for element in self.subList:
+		if self.sub_list != None:
+			for element in self.sub_list:
 				tmpRet = element['node'].get_whith_specific_parrent(parrentName)
 				if len(tmpRet) != 0:
 					for tmp in tmpRet:
@@ -347,8 +347,8 @@ class Node():
 		return ret
 	
 	def have_methode(self, methodeName):
-		if self.subList != None:
-			for element in self.subList:
+		if self.sub_list != None:
+			for element in self.sub_list:
 				if element['node'].get_node_type() != 'methode':
 					continue
 				if element['access'] == "private":
@@ -363,7 +363,7 @@ class Node():
 class MainNode(Node):
 	def __init__(self, type="library", name=""):
 		Node.__init__(self, type, name)
-		self.subList = []
+		self.sub_list = []
 
 def get_doc_website_page_relative(base, dest):
 	realBase = ""

@@ -34,7 +34,7 @@ class Variable(Node.Node):
 		
 		Node.Node.__init__(self, 'variable', name, file, lineNumber, documentation)
 		# force the sublist error  generation ...
-		self.subList = None
+		self.sub_list = None
 		# default variable :
 		self.type = Type.TypeNone()
 		self.static = False

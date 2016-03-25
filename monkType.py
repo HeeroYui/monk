@@ -25,7 +25,8 @@ global_class_link = {
 	"std::ostream"   : "http://www.cplusplus.com/reference/ostream/ostream/",
 	"std::shared_ptr": "http://www.cplusplus.com/reference/memory/shared_ptr/",
 	"std::weak_ptr"  : "http://www.cplusplus.com/reference/memory/weak_ptr/",
-	"std::enable_shared_from_this" : "http://www.cplusplus.com/reference/memory/enable_shared_from_this/"
+	"std::enable_shared_from_this" : "http://www.cplusplus.com/reference/memory/enable_shared_from_this/",
+	"std::function" : "http://www.cplusplus.com/reference/functional/function/"
 	}
 
 
@@ -94,21 +95,20 @@ class Type():
 					#Template separator ...
 					template_new_elem = True
 					continue
-			if element[0] in ['<']:
+			if element[0] == '<':
 				debug.info("    Start template")
 				if self.template_parameter == None:
 					self.template_parameter = []
-				if element[1:] != "":
-					self.template_parameter.append(element[1:])
 				template_level += 1
 				continue
-			if element[0] in ['>']:
+			if element[0] == '>':
 				template_level -= 1
 				debug.info("    Stop template")
 				continue
 			if template_level != 0:
 				if element != "":
-					if template_new_elem == True:
+					if    template_new_elem == True \
+					   or len(self.template_parameter) == 0:
 						self.template_parameter.append(element)
 					else:
 						self.template_parameter[-1] += " " + element

@@ -9,6 +9,7 @@ import monkNode as Node
 import monkParse as Parse
 import monkHtml
 import re
+import json
 
 class Module:
 	##
@@ -22,21 +23,21 @@ class Module:
 	##
 	def __init__(self, file, moduleName, moduleType):
 		## Remove all variable to prevent error of multiple deffinition of the module ...
-		self.originFile=''
-		self.originFolder=''
+		self.origin_file=''
+		self.origin_folder=''
 		# type of the module:
 		self.type='LIBRARY'
 		# Name of the module
 		self.name=moduleName
 		self.list_doc_file = []
 		self.list_tutorial_file = []
-		self.webSite = ""
-		self.webSource = ""
-		self.pathParsing = ""
-		self.pathGlobalDoc = ""
-		self.externalLink = []
+		self.web_site = ""
+		self.web_source = ""
+		self.path_parsing = ""
+		self.path_global_doc = ""
+		self.external_link = []
 		self.title = moduleName + " Library"
-		self.styleHtml = ""
+		self.style_html = ""
 		## end of basic INIT ...
 		if moduleType.upper() == 'APPLICATION':
 			self.type = 'application'
@@ -46,27 +47,27 @@ class Module:
 			debug.error('for module "%s"' %moduleName)
 			debug.error('    ==> error : "%s" ' %moduleType)
 			raise 'Input value error'
-		self.structureLib = Node.MainNode(self.type, moduleName)
-		self.originFile = file;
-		self.originFolder = tools.get_current_path(self.originFile)
+		self.structure_lib = Node.MainNode(self.type, moduleName)
+		self.origin_file = file;
+		self.origin_folder = tools.get_current_path(self.origin_file)
 		
 	
 	
 	##
-	## @brief Set the module website (activate only when compile in release mode, else "../moduleName/)
-	## @param[in] url New Website url
+	## @brief Set the module web_site (activate only when compile in release mode, else "../moduleName/)
+	## @param[in] url New web_site url
 	##
 	def set_website(self, url):
-		self.webSite = url
+		self.web_site = url
 	
 	def get_website(self):
-		return self.webSite
+		return self.web_site
 	
 	def set_website_sources(self, url):
-		self.webSource = url
+		self.web_source = url
 	
 	def get_website_sources(self):
-		return self.webSource
+		return self.web_source
 	
 	
 	##
@@ -74,21 +75,21 @@ class Module:
 	## @param[in] path New path to parse
 	##
 	def set_path(self, path):
-		self.pathParsing = path
+		self.path_parsing = path
 	
 	##
 	## @brief set the glabal documentation parsing folder
 	## @param[in] path New path to parse
 	##
 	def set_path_general_doc(self, path):
-		self.pathGlobalDoc = path
+		self.path_global_doc = path
 	
 	##
 	## @brief List of validate external library link (disable otherwise)
 	## @param[in] availlable List of all module link availlable 
 	##
 	def set_external_link(self, availlable):
-		self.externalLink = availlable
+		self.external_link = availlable
 	
 	##
 	## @brief Set the library title
@@ -102,15 +103,15 @@ class Module:
 	## @param[in] file File of the css style sheet
 	##
 	def set_html_css(self, cssFile):
-		self.styleHtml = cssFile
+		self.style_html = cssFile
 	
 	##
 	## @brief Create the module documentation:
 	##
 	def parse_code(self):
 		debug.info('Parse documantation code : ' + self.name)
-		if self.pathParsing != "":
-			for root, dirnames, filenames in os.walk(self.pathParsing):
+		if self.path_parsing != "":
+			for root, dirnames, filenames in os.walk(self.path_parsing):
 				tmpList = fnmatch.filter(filenames, "*.h")
 				# Import the module :
 				for filename in tmpList:
@@ -118,20 +119,20 @@ class Module:
 					debug.debug("    Find a file : '" + fileCompleteName + "'")
 					self.add_file(fileCompleteName)
 		# all file is parset ==> now we create the namespacing of all elements:
-		self.structureLib.set_namespace()
-		self.structureLib.set_module_link(self)
-		#self.structureLib.complete_display()
+		self.structure_lib.set_namespace()
+		self.structure_lib.set_module_link(self)
+		#self.structure_lib.complete_display()
 		
 		# display the hierarchie of all the class and namespace ...
-		#self.structureLib.debug_display()
-		if self.pathGlobalDoc != "":
-			for root, dirnames, filenames in os.walk(self.pathGlobalDoc):
+		#self.structure_lib.debug_display()
+		if self.path_global_doc != "":
+			for root, dirnames, filenames in os.walk(self.path_global_doc):
 				tmpList = fnmatch.filter(filenames, "*.bb")
 				# Import the module :
 				for filename in tmpList:
 					fileCompleteName = os.path.join(root, filename)
-					tutorialPath = os.path.join(self.pathGlobalDoc, "tutorial/")
-					pathBase = fileCompleteName[len(self.pathGlobalDoc):len(fileCompleteName)-3]
+					tutorialPath = os.path.join(self.path_global_doc, "tutorial/")
+					pathBase = fileCompleteName[len(self.path_global_doc):len(fileCompleteName)-3]
 					debug.verbose("    Find a doc file : fileCompleteName='" + fileCompleteName + "'")
 					if fileCompleteName[:len(tutorialPath)] == tutorialPath:
 						self.add_tutorial_doc(fileCompleteName, pathBase)
@@ -206,7 +207,7 @@ class Module:
 		#parsedFile = Parse.parse_file("Widget.h")
 		#debug.error("plop")
 		parsedFile = Parse.parse_file(filename)
-		self.structureLib = parsedFile.fusion(self.structureLib)
+		self.structure_lib = parsedFile.fusion(self.structure_lib)
 		
 		return True
 	
@@ -217,14 +218,16 @@ class Module:
 	##
 	def generate(self):
 		debug.info('Generate documantation code : ' + self.name)
-		destFolder = "out/doc/" + self.name + '/'
+		#json_data = json.dumps(self, sort_keys=True, indent=4)
+		#tools.file_write_data(os.path.join("out", "doc", self.name + ".json"), json_data)
+		destFolder = os.path.join("out", "doc", self.name)
 		tools.remove_folder_and_sub_folder(destFolder);
-		if monkHtml.generate(self, destFolder) == False:
+		if monkHtml.generate(self, destFolder + '/') == False:
 			debug.warning("Generation Documentation ==> return an error for " + self.name)
 		
 	
 	def get_base_doc_node(self):
-		return self.structureLib
+		return self.structure_lib
 	
 	##
 	## @brief Get the heritage list (parent) of one element.
@@ -234,8 +237,8 @@ class Module:
 	def get_heritage_list(self, element):
 		list = []
 		# get element class :
-		if element in self.listClass.keys():
-			localClass = self.listClass[element]
+		if element in self.list_class.keys():
+			localClass = self.list_class[element]
 			if len(localClass['inherits']) != 0:
 				# TODO : Support multiple heritage ...
 				isFirst = True
@@ -255,8 +258,8 @@ class Module:
 	def get_down_heritage_list(self, curentClassName):
 		list = []
 		# get element class :
-		for element in self.listClass:
-			localClass = self.listClass[element]
+		for element in self.list_class:
+			localClass = self.list_class[element]
 			if len(localClass['inherits']) != 0:
 				for heritedClass in localClass['inherits']:
 					if curentClassName == heritedClass['class']:
@@ -266,11 +269,11 @@ class Module:
 		return list
 	
 	def get_whith_specific_parrent(self, name, appName=None):
-		if self.structureLib.get_node_type() == "library":
-			return self.structureLib.get_whith_specific_parrent(name)
-		if appName != self.structureLib.get_name():
+		if self.structure_lib.get_node_type() == "library":
+			return self.structure_lib.get_whith_specific_parrent(name)
+		if appName != self.structure_lib.get_name():
 			return []
-		return self.structureLib.get_whith_specific_parrent(name)
+		return self.structure_lib.get_whith_specific_parrent(name)
 	
 	
 

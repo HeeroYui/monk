@@ -10,11 +10,12 @@ class Methode(Node.Node):
 		type = 'methode'
 		self.override = False
 		self.virtual = False
-		self.virtualPure = False
+		self.virtual_pure = False
 		self.static = False
 		self.inline = False
 		self.const = False # the end of line cont methode is sont for the class ...
 		self.noexcept = False
+		self.delete = False
 		
 		# remove constructer inside declaration ...
 		if ':' in stack:
@@ -26,8 +27,9 @@ class Methode(Node.Node):
 					break
 			stack = res
 		
-		#check if it is a template class:
-		if stack[0] == "template":
+		#check if it is a template methode:
+		# note: A methode template can contain multiple methode handle ...
+		while stack[0] == "template":
 			debug.debug("find a template methode: " + str(stack))
 			#remove template properties ==> not manage for now ...
 			newStack = []
@@ -52,38 +54,55 @@ class Methode(Node.Node):
 		if     stack[len(stack)-2] == '=' \
 		   and stack[len(stack)-1] == '0':
 			stack = stack[:len(stack)-2]
-			self.virtualPure = True
+			self.virtual_pure = True
 		
-		if stack[0] == 'virtual':
-			self.virtual = True
-			stack = stack[1:]
-		if stack[0] == 'static':
-			self.static = True
-			stack = stack[1:]
-		if stack[0] == 'inline':
-			self.inline = True
-			stack = stack[1:]
-		if stack[len(stack)-1] == 'override':
-			self.override = True
-			stack = stack[:len(stack)-1]
-		if stack[len(stack)-1] == 'noexcept':
-			self.noexcept = True
-			stack = stack[:len(stack)-1]
-		if stack[len(stack)-1] == 'const':
-			self.const = True
-			stack = stack[:len(stack)-1]
+		if     stack[len(stack)-2] == '=' \
+		   and stack[len(stack)-1] == 'delete':
+			stack = stack[:len(stack)-2]
+			self.delete = True
 		
-		namePos = -1
+		while stack[0] in ['virtual', 'static', 'inline']:
+			if stack[0] == 'virtual':
+				self.virtual = True
+				stack = stack[1:]
+			if stack[0] == 'static':
+				self.static = True
+				stack = stack[1:]
+			if stack[0] == 'inline':
+				self.inline = True
+				stack = stack[1:]
+		while stack[-1] in ['override', 'noexcept', 'const']:
+			if stack[-1] == 'override':
+				self.override = True
+				stack = stack[:-1]
+			if stack[-1] == 'noexcept':
+				self.noexcept = True
+				stack = stack[:-1]
+			if stack[-1] == 'const':
+				self.const = True
+				stack = stack[:-1]
 		
 		debug.debug("methode parse : " + str(stack))
-		for iii in range(0, len(stack)-2):
-			if stack[iii+1] == '(':
-				name = stack[iii]
+		namePos = -1
+		# form start to '(' char we will concatenate the name of the function wit template attributes 
+		# ex:  ['esignal', '::', 'Signal', '<', 'T_ARGS', '>', '::', 'Signal', '(', 'CLASS_TYPE', '*', '_class', ',', 'FUNC_TYPE', '_func', ')']
+		#  ==> ['esignal::Signal<T_ARGS>::Signal', '(', 'CLASS_TYPE', '*', '_class', ',', 'FUNC_TYPE', '_func', ')']
+		# find pos of '(':
+		namePos = len(stack)
+		namePosStart = 0
+		for iii in range(0, len(stack)):
+			if stack[iii] == '(':
 				namePos = iii
 				break;
-		
-		if namePos == 0:
-			debug.debug("start with '" + str(name[0]) + "'")
+			if     iii != 0 \
+			   and not (    stack[iii-1] in ["::", "<", ">", ","]
+			             or stack[iii] in ["::", "<", ">", ","]) :
+				namePosStart = iii
+		if namePos == len(stack):
+			debug.error(" can not parse function name :" + str(stack))
+		name = "".join(stack[namePosStart: namePos])
+		if namePosStart == 0:
+			debug.verbose("start with '" + str(name[0]) + "'")
 			if name[0] == '~':
 				if className == name[1:]:
 					type = 'destructor'
@@ -93,15 +112,15 @@ class Methode(Node.Node):
 		debug.debug("methode name : " + name)
 		Node.Node.__init__(self, type, name, file, lineNumber, documentation)
 		
-		self.returnType = Type.TypeNone()
+		self.return_type = Type.TypeNone()
 		self.variable = []
 		
 		# create the return Type (Can be Empty)
-		retTypeStack = stack[:namePos]
+		retTypeStack = stack[:namePosStart]
 		debug.debug("return : " + str(retTypeStack))
-		self.returnType = Type.Type(retTypeStack)
+		self.return_type = Type.Type(retTypeStack)
 		
-		parameterStack = stack[namePos+2:len(stack)-1]
+		parameterStack = stack[namePos+1:len(stack)-1]
 		debug.debug("parameter : " + str(parameterStack))
 		paramTmp = []
 		braceOpen = 0
@@ -110,16 +129,16 @@ class Methode(Node.Node):
 				if element == ',':
 					self.variable.append(Variable.Variable(paramTmp))
 					paramTmp = []
-				elif element == '(':
+				elif element in ['(', '<']:
 					paramTmp.append(element)
 					braceOpen += 1
 				else:
 					paramTmp.append(element)
 			else:
 				paramTmp.append(element)
-				if element == '(':
+				if element in ['(', '<']:
 					braceOpen += 1
-				elif element == ')':
+				elif element in [')', '>']:
 					braceOpen -= 1
 		if len(paramTmp) != 0:
 			self.variable.append(Variable.Variable(paramTmp))
@@ -139,7 +158,7 @@ class Methode(Node.Node):
 		if self.inline == True:
 			ret += "inline "
 			retDecorated += module.display_color("inline") + " "
-		raw, decorated = self.returnType.to_str_decorated()
+		raw, decorated = self.return_type.to_str_decorated()
 		ret += raw
 		retDecorated += decorated
 		ret += " "
@@ -147,7 +166,7 @@ class Methode(Node.Node):
 		ret += "("
 		# ...
 		ret += ")"
-		if self.virtualPure == True:
+		if self.virtual_pure == True:
 			ret += " = 0"
 			retDecorated += " = 0"
 		if self.const == True:
@@ -159,6 +178,9 @@ class Methode(Node.Node):
 		if self.override == True:
 			ret += " override"
 			retDecorated += " " + module.display_color("override")
+		if self.delete == True:
+			ret += " = delete"
+			retDecorated += " = " + module.display_color("delete")
 		return [ret, retDecorated]
 	
 	##
@@ -176,7 +198,14 @@ class Methode(Node.Node):
 	## @note Availlable only if the virtual is active
 	##
 	def get_virtual_pure(self):
-		return self.virtualPure
+		return self.virtual_pure
+	
+	##
+	## @brief Get the status of the delete function ( virtual XXX(...) = delete;)
+	## @return True if =delete is present, False otherwise
+	##
+	def get_delete(self):
+		return self.delete
 	
 	##
 	## @brief Get the status of the inline function ( inline XXX(...);)
@@ -206,7 +235,7 @@ class Methode(Node.Node):
 	## @return Return methode type (type: Type.Type)
 	##
 	def get_return_type(self):
-		return self.returnType
+		return self.return_type
 	
 	##
 	## @brief Get the list of parameter of the methode

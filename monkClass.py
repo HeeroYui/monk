@@ -60,11 +60,11 @@ class Class(Node.Node):
 			return
 		Node.Node.__init__(self, 'class', stack[1], file, lineNumber, documentation)
 		self.template = templateDeclatation
-		self.subList = []
+		self.sub_list = []
 		self.access = "private"
 		# heritage list :
-		self.templateType = None
-		self.templateTypeStr = ""
+		self.template_type = None
+		self.template_type_str = ""
 		self.inherit = []
 		if len(stack) == 2:
 			# just a simple class...
@@ -74,23 +74,23 @@ class Class(Node.Node):
 			# This is a template
 			for iii in range(0, len(stack)):
 				if stack[iii] == '>':
-					self.templateType = stack[2:iii]
+					self.template_type = stack[2:iii]
 					stack = stack[:2] + stack[iii+1:]
 					break;
 			# TODO : add tpe in rendering
-			if self.templateType == None:
+			if self.template_type == None:
 				debug.error("error in parsing class : " + str(stack) + " can not parse template property ...")
 			else:
-				copyTemplateType = self.templateType;
-				self.templateType = []
-				self.templateTypeStr = "<"
-				for val in copyTemplateType:
+				copytemplate_type = self.template_type;
+				self.template_type = []
+				self.template_type_str = "<"
+				for val in copytemplate_type:
 					if val[0] == '<':
 						val = val[1:]
 					if val != '>':
-						self.templateType.append(val)
-						self.templateTypeStr += val + " "
-				self.templateTypeStr = ">"
+						self.template_type.append(val)
+						self.template_type_str += val + " "
+				self.template_type_str = ">"
 		if len(stack) == 3:
 			debug.error("error in parsing class : " + str(stack))
 			return
@@ -123,7 +123,7 @@ class Class(Node.Node):
 	
 	def to_str(self) :
 		ret = "class " + self.name
-		ret += self.templateTypeStr
+		ret += self.template_type_str
 		if len(self.inherit) != 0 :
 			ret += " : "
 			isFirst = True
@@ -155,8 +155,8 @@ class Class(Node.Node):
 			if parrentName == self.inherit[0]['class']:
 				ret.append(self.get_displayable_name())
 		# set for all sub elements ...
-		if self.subList != None:
-			for element in self.subList:
+		if self.sub_list != None:
+			for element in self.sub_list:
 				tmpRet = element['node'].get_whith_specific_parrent(parrentName)
 				if len(tmpRet) != 0:
 					for tmp in tmpRet:

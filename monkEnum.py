@@ -4,7 +4,7 @@ import monkNode as Node
 
 class Enum(Node.Node):
 	def __init__(self, stack=[], file="", lineNumber=0, documentation=[]):
-		self.baseValue = 0;
+		self.base_value = 0;
 		# check input :
 		if len(stack) < 1:
 			debug.error("Can not parse enum : " + str(stack))
@@ -23,7 +23,7 @@ class Enum(Node.Node):
 		
 		Node.Node.__init__(self, 'enum', localEnumName, file, lineNumber, documentation)
 		
-		self.listElement = []
+		self.list_element = []
 	
 	def to_str(self) :
 		return "enum " + self.name + " { ... };"
@@ -60,23 +60,23 @@ class Enum(Node.Node):
 					for tmp in element[2:]:
 						value = tmp
 			if value == "":
-				if self.baseValue == None:
+				if self.base_value == None:
 					value = "???"
 				else:
-					value = str(self.baseValue)
-					self.baseValue += 1
+					value = str(self.base_value)
+					self.base_value += 1
 			else:
 				try:
 					tmpVal = int(value)
-					self.baseValue = tmpVal + 1
+					self.base_value = tmpVal + 1
 				except:
 					debug.debug("can not parse enum value : '" + value + "'")
-					self.baseValue = None
-			self.listElement.append({'name' : element[0], 'value' : value, 'doc' : comments})
+					self.base_value = None
+			self.list_element.append({'name' : element[0], 'value' : value, 'doc' : comments})
 		
-		debug.verbose("enum list : " + str(self.listElement))
+		debug.verbose("enum list : " + str(self.list_element))
 	
 	def get_enum_list(self):
-		return self.listElement
+		return self.list_element
 
 

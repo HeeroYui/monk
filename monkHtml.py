@@ -204,6 +204,7 @@ def calculate_methode_size(list):
 	methodeSize = 0;
 	haveVirtual = False
 	for element in list:
+		debug.info("node type = " + element['node'].get_node_type())
 		if     element['node'].get_node_type() == 'methode' \
 		    or element['node'].get_node_type() == 'constructor' \
 		    or element['node'].get_node_type() == 'destructor':
@@ -211,6 +212,8 @@ def calculate_methode_size(list):
 				haveVirtual = True
 		if element['node'].get_node_type() == 'variable':
 			retType = element['node'].get_type().to_str()
+		elif element['node'].get_node_type() == 'using':
+			retType = ""
 		else:
 			retType = element['node'].get_return_type().to_str()
 		tmpLen = len(retType)
@@ -241,7 +244,11 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 	else:
 		ret += '  '
 	
-	if element['node'].get_node_type() == 'variable':
+	if element['node'].get_node_type() in ['variable']:
+		if displaySize[2] == True:
+			ret += '        '
+		raw, decorated = element['node'].get_type().to_str_decorated()
+	elif element['node'].get_node_type() in ['using']:
 		if displaySize[2] == True:
 			ret += '        '
 		raw, decorated = element['node'].get_type().to_str_decorated()
@@ -270,7 +277,7 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 	else:
 		ret += '<span class="' + classDecoration + '">' + name + '</span>'
 	
-	if element['node'].get_node_type() != 'variable':
+	if element['node'].get_node_type() not in ['variable', 'using']:
 		ret += white_space(displaySize[1] - len(name)) + ' ('
 		listParam = element['node'].get_param()
 		first = True
@@ -289,12 +296,14 @@ def write_methode(element, namespaceStack, displaySize = None, link = True):
 				ret += " "
 			ret += "<span class=\"code-argument\">" + param.get_name() + "</span>"
 		ret += ')'
-		if element['node'].get_virtual_pure() == True:
-			ret += ' = 0'
 		if element['node'].get_constant() == True:
 			ret += module.display_color(' const')
 		if element['node'].get_override() == True:
 			ret += module.display_color(' override')
+		if element['node'].get_virtual_pure() == True:
+			ret += ' = 0'
+		if element['node'].get_delete() == True:
+			ret += ' = delete'
 	
 	ret += ';'
 	ret += '<br/>'
@@ -318,8 +327,8 @@ def generate_page(outFolder, header, footer, element, name_lib=""):
 	debug.print_element("code-doc", name_lib, "<==", element.name)
 	currentPageSite = element.get_doc_website_page()
 	namespaceStack = element.get_namespace()
-	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union']:
-		listBase = element.get_all_sub_type(['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union'])
+	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union', 'using']:
+		listBase = element.get_all_sub_type(['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union', 'using'])
 		for elem in listBase:
 			generate_page(outFolder, header, footer, elem['node'], name_lib)
 	filename = outFolder + '/' + generate_html_page_name(element)
@@ -366,7 +375,7 @@ def generate_page(outFolder, header, footer, element, name_lib=""):
 			file.write('</ul>\n');
 	
 	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct']:
-		for nameElement in ['namespace', 'class', 'struct', 'enum', 'union']:
+		for nameElement in ['namespace', 'class', 'struct', 'enum', 'union', 'using']:
 			listBase = element.get_all_sub_type(nameElement)
 			if len(listBase) == 0:
 				continue
@@ -385,12 +394,11 @@ def generate_page(outFolder, header, footer, element, name_lib=""):
 				file.write('</ul>\n');
 		
 	# calculate element size :
-	listBase = element.get_all_sub_type(['methode', 'constructor', 'destructor', 'variable'])
+	listBase = element.get_all_sub_type(['methode', 'constructor', 'destructor', 'variable', 'using'])
 	displayLen = calculate_methode_size(listBase)
 	
 	if    element.get_node_type() == 'class' \
 	   or element.get_node_type() == 'struct':
-		
 		if len(element.get_all_sub_type(['constructor', 'destructor'])) != 0:
 			globalWrite = ""
 			listBaseConstructor = element.get_all_sub_type(['constructor'])
@@ -411,7 +419,7 @@ def generate_page(outFolder, header, footer, element, name_lib=""):
 				file.write('<br/>\n')
 	
 	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct']:
-		listBaseMethode = element.get_all_sub_type(['methode', 'variable'])
+		listBaseMethode = element.get_all_sub_type(['methode', 'variable', 'using'])
 		if len(listBaseMethode) != 0:
 			globalWrite = ""
 			globalWriteProperties = ""
@@ -697,7 +705,9 @@ def generate(my_lutin_doc, outFolder) :
 				continue
 			generic_header += '<ul class="niveau1">'
 			link = node.get_doc_website_page_relative(localWebsite, modd.get_website())
-			if link[-1] != "/":
+			debug.debug("link = " + str(link) + " << " + localWebsite + " !! " + str(modd.get_website()))
+			if     len(link) != 0 \
+			   and link[-1] != "/":
 				link += "/"
 			generic_header += '<li><a href="' + link + 'index.html">' + modd.name + '</a></li>\n'
 			generic_header += '</ul>'
