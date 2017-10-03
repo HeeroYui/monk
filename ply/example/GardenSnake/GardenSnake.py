@@ -648,7 +648,7 @@ from compiler import misc, syntax, pycodegen
 class GardenSnakeCompiler(object):
     def __init__(self):
         self.parser = GardenSnakeParser()
-    def compile(self, code, filename="<string>"):
+    def compile(self, code, filename="<etk/String.hpp>"):
         tree = self.parser.parse(code)
         #print  tree
         misc.set_filename(filename, tree)

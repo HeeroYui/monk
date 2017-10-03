@@ -15,6 +15,7 @@ class Methode(Node.Node):
 		self.inline = False
 		self.const = False # the end of line cont methode is sont for the class ...
 		self.noexcept = False
+		self.override = False
 		self.delete = False
 		
 		# remove constructer inside declaration ...
@@ -61,7 +62,10 @@ class Methode(Node.Node):
 			stack = stack[:len(stack)-2]
 			self.delete = True
 		
-		while stack[0] in ['virtual', 'static', 'inline']:
+		while len(stack) > 0\
+		      and (    stack[0] == 'virtual'\
+		            or stack[0] == 'static'\
+		            or stack[0] == 'inline')::
 			if stack[0] == 'virtual':
 				self.virtual = True
 				stack = stack[1:]

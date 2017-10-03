@@ -14,15 +14,15 @@ global_basic_type = ['void', 'bool', \
                      'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t', 'uint128_t', \
                      'T', 'CLASS_TYPE']
 global_class_link = {
-	"std::string"      : "http://www.cplusplus.com/reference/string/string/",
+	"etk::String"      : "http://www.cplusplus.com/reference/string/string/",
 	"std::u16string"   : "http://www.cplusplus.com/reference/string/u16string/",
 	"std11::u16string" : "http://www.cplusplus.com/reference/string/u16string/",
-	"std::u32string"   : "http://www.cplusplus.com/reference/string/u32string/",
+	"etk::UString"   : "http://www.cplusplus.com/reference/string/u32string/",
 	"std11::u32string" : "http://www.cplusplus.com/reference/string/u32string/",
 	"std::wstring"     : "http://www.cplusplus.com/reference/string/wstring/",
-	"std::vector"      : "http://www.cplusplus.com/reference/vector/vector/",
+	"etk::Vector"      : "http://www.cplusplus.com/reference/vector/vector/",
 	"std::list"        : "http://www.cplusplus.com/reference/list/list/",
-	"std::pair"        : "http://www.cplusplus.com/reference/utility/pair/",
+	"etk::Pair"        : "http://www.cplusplus.com/reference/utility/pair/",
 	"std::tuple"       : "http://www.cplusplus.com/reference/tuple/tuple/",
 	
 	"std::shared_ptr"  : "http://www.cplusplus.com/reference/memory/shared_ptr/",
@@ -34,7 +34,7 @@ global_class_link = {
 	"std::enable_shared_from_this" : "http://www.cplusplus.com/reference/memory/enable_shared_from_this/",
 	"std11::enable_shared_from_this" : "http://www.cplusplus.com/reference/memory/enable_shared_from_this/",
 	
-	"std::mutex"  : "http://www.cplusplus.com/reference/mutex/mutex/",
+	"ethread::Mutex"  : "http://www.cplusplus.com/reference/mutex/mutex/",
 	"std11::mutex": "http://www.cplusplus.com/reference/mutex/mutex/",
 	
 	"std::unique_lock"  : "http://www.cplusplus.com/reference/mutex/unique_lock/",

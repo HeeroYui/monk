@@ -2,11 +2,13 @@
 import os
 import sys
 import re
+import copy
 
 import monkTools as tools
 
 sys.path.append(tools.get_current_path(__file__) + "/ply/ply/")
 sys.path.append(tools.get_current_path(__file__) + "/codeBB/")
+sys.path.append(tools.get_current_path(__file__) + "/codeMarkDown/")
 sys.path.append(tools.get_current_path(__file__) + "/codeHL/")
 
 import lex
@@ -84,7 +86,7 @@ t_EXCLAMATION = r'!'
 def t_PRECOMP(t):
 	r'\#.*?\n'
 	t.value = re.sub(r'\#\#multiline\#\#', "\\\n", t.value)
-	t.lexer.lineno += len(filter(lambda a: a=="\n", t.value))
+	t.lexer.lineno += len(list(filter(lambda a: a=="\n", t.value)))
 	return t
 def t_COMMENT_SINGLELINE_DOC_PREVIOUS(t):
 	r'//(/|!)<.*?\n'
@@ -129,7 +131,8 @@ t_STRING_LITERAL = r'"([^"\\]|\\.)*"'
 #Found at http://ostermiller.org/findcomment.html
 def t_COMMENT_MULTILINE_DOC(t):
 	r'/\*(\*|!)(\n|.)*?\*/'
-	t.lexer.lineno += len(filter(lambda a: a=="\n", t.value))
+	filter_result = list(filter(lambda a: a=="\n", t.value))
+	t.lexer.lineno += len(filter_result)
 	t.value = re.sub("( |\t)*\*", "", t.value[3:-2])
 	while t.value[0] == '\n':
 		if len(t.value) <= 2:
@@ -164,7 +167,7 @@ def t_COMMENT_MULTILINE_DOC(t):
 	return t
 def t_COMMENT_MULTILINE(t):
 	r'/\*(\n|.)*?\*/'
-	t.lexer.lineno += len(filter(lambda a: a=="\n", t.value))
+	t.lexer.lineno += len(list(filter(lambda a: a=="\n", t.value)))
 def t_NEWLINE(t):
 	r'\n+'
 	t.lexer.lineno += len(t.value)
@@ -607,31 +610,27 @@ class parse_file():
 
 def is_a_function(stack) :
 	# in a function we need to have functionName + ( + )
-	if len(stack) < 3:
+	tmp = copy.deepcopy(stack);
+	while len(tmp) > 0\
+	      and (    tmp[-1] == 'const'\
+	            or tmp[-1] == 'noexcept'\
+	            or tmp[-1] == 'override'\
+	            or tmp[-1] == 'volatile'):
+		tmp = tmp[:-1]
+	if len(tmp) < 3:
 		return False
-	if ':' in stack:
+	if ':' in tmp:
 		res = []
-		for element in stack:
+		for element in tmp:
 			if element != ':':
 				res.append(element)
 			else:
 				break
-		stack = res
-	if     stack[len(stack)-2] == '=' \
-	   and stack[len(stack)-1] == '0':
-		stack = stack[:len(stack)-2]
-	if     stack[len(stack)-2] == '=' \
-	   and stack[len(stack)-1] == 'delete':
-		stack = stack[:len(stack)-2]
-	# find ')' element :
-	id = len(stack)-1
-	while id >= 0:
-		if stack[id] == ')':
-			break;
-		id -= 1
-	if id >= 0:
-		for elem in stack[id+1:]:
-			if elem not in ['const', 'noexcept', 'override']:
-				return False
+		tmp = res
+	if     tmp[-2] == '=' \
+	   and tmp[-1] == '0':
+		tmp = tmp[:-2]
+	#can end with 2 possibilities : ')', 'const' or ')'
+	if tmp[-1] == ')':
 		return True
 	return False

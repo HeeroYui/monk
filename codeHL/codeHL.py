@@ -12,7 +12,8 @@ import codeHLshell
 
 
 def transcode(type, value):
-	if type == "c++":
+	if    type == "c++" \
+	   or type == "cpp":
 		value = codeHLcpp.transcode(value)
 	elif type == "java":
 		value = codeHLJava.transcode(value)

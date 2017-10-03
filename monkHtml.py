@@ -6,6 +6,7 @@ import monkTools as tools
 import os
 import re
 import codeBB
+import codeMarkDown
 import collections
 import monkModule as module
 import monkNode as node
@@ -765,8 +766,11 @@ def generate(my_lutin_doc, outFolder) :
 		localHeader += "\n"
 		outData += codeBB.transcode(localHeader)
 		#debug.info(localHeader)
-		outData += codeBB.transcode(inData)
-		outData += generic_footer
+		if docInputName[-2:] == "bb":
+			outData += codeBB.transcode(inData)
+		elif docInputName[-2:] == "md":
+			outData += codeMarkDown.transcode(inData)
+		outData += genericFooter
 		tools.file_write_data(outputFileName, outData)
 	
 	for docInputName,outpath in my_lutin_doc.list_doc_file :
@@ -777,7 +781,12 @@ def generate(my_lutin_doc, outFolder) :
 		inData = tools.file_read_data(docInputName)
 		if inData == "":
 			continue
-		outData = generic_header + codeBB.transcode(inData) + generic_footer
+		outData = generic_header
+		if docInputName[-2:] == "bb":
+			outData += codeBB.transcode(inData)
+		elif docInputName[-2:] == "md":
+			outData += codeMarkDown.transcode(inData)
+		outData += generic_footer
 		tools.file_write_data(outputFileName, outData)
 
 

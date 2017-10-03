@@ -10,22 +10,34 @@ class Enum(Node.Node):
 			debug.error("Can not parse enum : " + str(stack))
 			return
 		self.typedef = False
-		if stack[0] == 'typedef':
+		if len(stack) > 0 \
+		   and stack[0] == 'typedef':
 			self.typedef = True
 			stack[1:]
-		if len(stack) == 0:
+		if len(stack) > 0 \
+		   and stack[0] == 'enum':
+			stack[1:]
+		else:
 			debug.error("Can not parse enum : " + str(stack))
 			return
-		if len(stack) == 1:
-			localEnumName = ""
-		else:
+		self.is_class = False
+		if len(stack) > 0 \
+		   and stack[0] == 'class':
+			self.is_class = True
+			stack[1:]
+		if len(stack) >= 1:
 			localEnumName = stack[1]
+		else:
+			debug.error("Can not parse enum : " + str(stack))
+			return
 		
 		Node.Node.__init__(self, 'enum', localEnumName, file, lineNumber, documentation)
 		
 		self.list_element = []
 	
 	def to_str(self) :
+		if self.is_class == True:
+			return "enum class " + self.name + " { ... };"
 		return "enum " + self.name + " { ... };"
 	
 	def enum_append(self, stack):

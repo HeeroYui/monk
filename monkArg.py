@@ -246,5 +246,5 @@ class MonkArg:
 		for element in self.list_properties :
 			listOfPropertiesArg += element.get_porperties()
 		print("	" + sys.argv[0] + listOfPropertiesArg + " ...")
-		for element in self.list_properties :
+		for element in self.m_list_properties :
 			element.display()

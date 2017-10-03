@@ -112,7 +112,7 @@ class Module:
 		debug.info('Parse documantation code : ' + self.name)
 		if self.path_parsing != "":
 			for root, dirnames, filenames in os.walk(self.path_parsing):
-				tmpList = fnmatch.filter(filenames, "*.h")
+				tmpList = fnmatch.filter(filenames, "*.hpp")
 				# Import the module :
 				for filename in tmpList:
 					fileCompleteName = os.path.join(root, filename)
@@ -127,16 +127,21 @@ class Module:
 		#self.structure_lib.debug_display()
 		if self.path_global_doc != "":
 			for root, dirnames, filenames in os.walk(self.path_global_doc):
-				tmpList = fnmatch.filter(filenames, "*.bb")
+				tmpList = fnmatch.filter(filenames, "*.md")
 				# Import the module :
 				for filename in tmpList:
 					fileCompleteName = os.path.join(root, filename)
 					tutorialPath = os.path.join(self.path_global_doc, "tutorial/")
 					pathBase = fileCompleteName[len(self.path_global_doc):len(fileCompleteName)-3]
+					while     len(pathBase) > 0 \
+					      and pathBase[0] == '/':
+						pathBase = pathBase[1:]
 					debug.verbose("    Find a doc file : fileCompleteName='" + fileCompleteName + "'")
 					if fileCompleteName[:len(tutorialPath)] == tutorialPath:
+						debug.warning("add_tutorial_doc : '" + fileCompleteName + "' ==> '" + pathBase + "'")
 						self.add_tutorial_doc(fileCompleteName, pathBase)
 					else:
+						debug.warning("add_file_doc : '" + fileCompleteName + "' ==> '" + pathBase + "'")
 						self.add_file_doc(fileCompleteName, pathBase)
 	
 	##
