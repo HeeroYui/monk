@@ -26,18 +26,18 @@ def read_version_file():
 	return data_file
 
 # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-setup(name='lutin',
+setup(name='monk',
       version=read_version_file(),
-      description='Lutin generic builder (might replace makefile, CMake ...)',
+      description='Monk documentation builder',
       long_description=readme(),
       url='http://github.com/HeeroYui/doxy',
       author='Edouard DUPIN',
       author_email='yui.heero@gmail.com',
       license='MPL-2',
-      packages=['lutin',
-                'lutin/codeBB',
-                'lutin/codeHL',
-                'lutin/codeMarkDown'],
+      packages=['monk',
+                'monk/codeBB',
+                'monk/codeHL',
+                'monk/codeMarkDown'],
       classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
@@ -49,7 +49,7 @@ setup(name='lutin',
       scripts=['bin/monk'],
       # Does not work on MacOs
       #data_file=[
-      #    ('/etc/bash_completion.d', ['bash-autocompletion/lutin']),
+      #    ('/etc/bash_completion.d', ['bash-autocompletion/monk']),
       #],
       install_requires=[
           'realog',
@@ -61,7 +61,7 @@ setup(name='lutin',
 
 #To developp: sudo ./setup.py install
 #             sudo ./setup.py develop
-#pylint test: pylint2 --rcfile=pylintRcFile.txt lutin/module.py
+#pylint test: pylint2 --rcfile=pylintRcFile.txt monk/module.py
 
 #TO register all in pip: use external tools:
 #  pip install twine
