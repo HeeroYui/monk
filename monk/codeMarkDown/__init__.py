@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from realog import debug
 import sys
-import monkTools
+from monk import tools
 import re
 """
 import BB_Link
@@ -15,13 +15,17 @@ import MD_IndentAndDot
 import MD_Title
 import MD_comment
 import MD_lineReturn
+import MD_Image
 import MD_Code
+import MD_Link
+import MD_Table
+import MD_ResultSelection
 ##
 ## @brief Transcode input data in the corect format.
 ## @param[in] string String to transform.
 ## @return Transformed string.
 ##
-def transcode(value):
+def transcode(value, _base_path = ""):
 	# remove html property
 	value = re.sub(r'&', r'&amp;', value)
 	value = re.sub(r'<', r'&lt;', value)
@@ -29,19 +33,20 @@ def transcode(value):
 	value = re.sub(r'\r\n', r'\n', value)
 	value = re.sub(r'\n\r', r'\n', value)
 	value = re.sub(r'\r', r'\n', value)
-	value = MD_comment.transcode(value)
-	value = MD_Title.transcode(value)
-	value = MD_IndentAndDot.transcode(value)
-	value = MD_Code.transcode(value)
-	value = MD_lineReturn.transcode(value)
-	value = MD_Text.transcode(value)
+	value = MD_comment.transcode(value, _base_path)
+	value = MD_Title.transcode(value, _base_path)
+	value = MD_IndentAndDot.transcode(value, _base_path)
+	value = MD_Code.transcode(value, _base_path)
+	value = MD_lineReturn.transcode(value, _base_path)
+	value = MD_Text.transcode(value, _base_path)
 	"""
-	value = BB_Text.transcode(value)
-	value = BB_Link.transcode(value)
-	value = BB_Image.transcode(value)
-	value = BB_Table.transcode(value)
-	value = BB_Specification.transcode(value)
+	value = BB_Text.transcode(value, _base_path)
+	value = BB_Specification.transcode(value, _base_path)
 	"""
+	value = MD_Table.transcode(value, _base_path)
+	value = MD_Image.transcode(value, _base_path)
+	value = MD_Link.transcode(value, _base_path)
+	value = MD_ResultSelection.transcode(value, _base_path)
 	value = MD_Code.transcode_part2(value)
 	return value
 
@@ -50,12 +55,12 @@ def transcode(value):
 ## @return True if the file is transformed
 ##
 def transcode_file(inputFileName, outputFileName):
-	inData = monkTools.file_read_data(inputFileName)
+	inData = tools.file_read_data(inputFileName)
 	if inData == "":
 		return False
 	outData = transcode(inData)
 	debug.warning(" out: " + outputFileName)
-	monkTools.file_write_data(outputFileName, outData)
+	tools.file_write_data(outputFileName, outData)
 	return True
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from realog import debug
-import monkType as Type
-import monkNode as Node
+from . import monkType as Type
+from . import monkNode as Node
 
 class Variable(Node.Node):
 	def __init__(self, stack=[], file="", lineNumber=0, documentation=[]):

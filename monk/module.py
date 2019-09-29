@@ -4,10 +4,10 @@ import os
 import inspect
 import fnmatch
 from realog import debug
-import monkTools as tools
-import monkNode as Node
-import monkParse as Parse
-import monkHtml
+from . import tools
+from . import monkNode as Node
+from . import monkParse as Parse
+from . import monkHtml
 import re
 import json
 
@@ -30,7 +30,10 @@ class Module:
 		# Name of the module
 		self.name=moduleName
 		self.list_doc_file = []
+		self.list_image_file = []
 		self.list_tutorial_file = []
+		self.list_manual_file = []
+		self.list_test_file = []
 		self.web_site = ""
 		self.web_source = ""
 		self.path_parsing = ""
@@ -115,9 +118,9 @@ class Module:
 				tmpList = fnmatch.filter(filenames, "*.hpp")
 				# Import the module :
 				for filename in tmpList:
-					fileCompleteName = os.path.join(root, filename)
-					debug.debug("    Find a file : '" + fileCompleteName + "'")
-					self.add_file(fileCompleteName)
+					file_complete_name = os.path.join(root, filename)
+					debug.debug("    Find a file : '" + file_complete_name + "'")
+					self.add_file(file_complete_name)
 		# all file is parset ==> now we create the namespacing of all elements:
 		self.structure_lib.set_namespace()
 		self.structure_lib.set_module_link(self)
@@ -130,19 +133,36 @@ class Module:
 				tmpList = fnmatch.filter(filenames, "*.md")
 				# Import the module :
 				for filename in tmpList:
-					fileCompleteName = os.path.join(root, filename)
-					tutorialPath = os.path.join(self.path_global_doc, "tutorial/")
-					pathBase = fileCompleteName[len(self.path_global_doc):len(fileCompleteName)-3]
-					while     len(pathBase) > 0 \
-					      and pathBase[0] == '/':
-						pathBase = pathBase[1:]
-					debug.verbose("    Find a doc file : fileCompleteName='" + fileCompleteName + "'")
-					if fileCompleteName[:len(tutorialPath)] == tutorialPath:
-						debug.warning("add_tutorial_doc : '" + fileCompleteName + "' ==> '" + pathBase + "'")
-						self.add_tutorial_doc(fileCompleteName, pathBase)
+					file_complete_name = os.path.join(root, filename)
+					tutorial_path = os.path.join(self.path_global_doc, "tutorial/")
+					test_path = os.path.join(self.path_global_doc, "test/")
+					manual_path = os.path.join(self.path_global_doc, "manual/")
+					path_base = file_complete_name[len(self.path_global_doc):len(file_complete_name)-3]
+					while     len(path_base) > 0 \
+					      and path_base[0] == '/':
+						path_base = path_base[1:]
+					debug.verbose("    Find a doc file : file_complete_name='" + file_complete_name + "'")
+					if file_complete_name[:len(tutorial_path)] == tutorial_path:
+						debug.warning("add_tutorial_doc : '" + file_complete_name + "' ==> '" + path_base + "'")
+						self.add_tutorial_doc(file_complete_name, path_base)
+					elif file_complete_name[:len(test_path)] == test_path:
+						debug.warning("add_test_doc : '" + file_complete_name + "' ==> '" + path_base + "'")
+						self.add_test_doc(file_complete_name, path_base)
+					elif file_complete_name[:len(manual_path)] == manual_path:
+						debug.warning("add_user_manual_doc : '" + file_complete_name + "' ==> '" + path_base + "'")
+						self.add_user_manual_doc(file_complete_name, path_base)
 					else:
-						debug.warning("add_file_doc : '" + fileCompleteName + "' ==> '" + pathBase + "'")
-						self.add_file_doc(fileCompleteName, pathBase)
+						debug.warning("add_file_doc : '" + file_complete_name + "' ==> '" + path_base + "'")
+						self.add_file_doc(file_complete_name, path_base)
+			for root, dirnames, filenames in os.walk(self.path_global_doc):
+				for filename in filenames:
+					if not filename.endswith(('.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG', '.svg', '.SVG', '.gif', '.GIF', '.tga', '.TGA')):
+						continue
+					file_complete_name = os.path.join(root, filename)
+					path_base = file_complete_name[len(self.path_global_doc)+1:]
+					debug.verbose("    Find a doc file : file_complete_name='" + file_complete_name + "'")
+					debug.warning("add_image_doc: '" + file_complete_name + "' ==> '" + path_base + "'")
+					self.add_image_doc(file_complete_name, path_base)
 	
 	##
 	## @brief Sort a list of n element containing a list of element (order with the first)
@@ -182,13 +202,31 @@ class Module:
 		self.list_doc_file = self.sort_list_first_elem(self.list_doc_file)
 	
 	##
+	## @brief Add a documentation image file to copy to the output
+	## @param[in] filename File To add in the output documentation.
+	## @param[in] outPath output system file.
+	## @return True if no error occured, False otherwise
+	##
+	def add_image_doc(self, filename, outPath):
+		debug.debug("adding file in documantation : '" + filename + "'");
+		done = False
+		for iii in range(0,len(self.list_image_file)):
+			if self.list_image_file[iii][0] > filename:
+				self.list_image_file.insert(iii, [filename, outPath])
+				done = True
+				break
+		if done == False:
+			self.list_image_file.append([filename, outPath])
+		self.list_image_file = self.sort_list_first_elem(self.list_image_file)
+	
+	##
 	## @brief Add a documentation file at the parsing system
 	## @param[in] filename File To add at the parsing element system.
 	## @param[in] outPath output system file.
 	## @return True if no error occured, False otherwise
 	##
 	def add_tutorial_doc(self, filename, outPath):
-		count = int(filename.split('/')[-1].split('_')[0])
+		#count = int(filename.split('/')[-1].split('_')[0])
 		debug.debug("adding file in documantation : '" + filename + "'");
 		done = False
 		for iii in range(0,len(self.list_tutorial_file)):
@@ -199,6 +237,45 @@ class Module:
 		if done == False:
 			self.list_tutorial_file.append([filename, outPath])
 		self.list_tutorial_file = self.sort_list_first_elem(self.list_tutorial_file)
+		
+	
+	##
+	## @brief Add a documentation file at the parsing system
+	## @param[in] filename File To add at the parsing element system.
+	## @param[in] outPath output system file.
+	## @return True if no error occured, False otherwise
+	##
+	def add_user_manual_doc(self, filename, outPath):
+		#count = int(filename.split('/')[-1].split('_')[0])
+		debug.debug("adding file in user manual documantation : '" + filename + "'");
+		done = False
+		for iii in range(0,len(self.list_tutorial_file)):
+			if self.list_manual_file[iii][0] > filename:
+				self.list_manual_file.insert(iii, [filename, outPath])
+				done = True
+				break
+		if done == False:
+			self.list_manual_file.append([filename, outPath])
+		self.list_manual_file = self.sort_list_first_elem(self.list_manual_file)
+		
+	##
+	## @brief Add a documentation file at the parsing system
+	## @param[in] filename File To add at the parsing element system.
+	## @param[in] outPath output system file.
+	## @return True if no error occured, False otherwise
+	##
+	def add_test_doc(self, filename, outPath):
+		#count = int(filename.split('/')[-1].split('_')[0])
+		debug.debug("adding file in test documantation : '" + filename + "'");
+		done = False
+		for iii in range(0,len(self.list_tutorial_file)):
+			if self.list_test_file[iii][0] > filename:
+				self.list_test_file.insert(iii, [filename, outPath])
+				done = True
+				break
+		if done == False:
+			self.list_test_file.append([filename, outPath])
+		self.list_test_file = self.sort_list_first_elem(self.list_test_file)
 		
 	
 	##

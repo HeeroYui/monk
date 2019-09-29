@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from realog import debug
 import sys
-import monkTools
+from monk import tools
 import re
 
 
@@ -11,7 +11,7 @@ import re
 ## @param[in] value String to transform.
 ## @return Transformed string.
 ##
-def transcode(value):
+def transcode(value, _base_path):
 	
 	value = re.sub(r'\/\*(.*?)\*\/',
 	               r'',

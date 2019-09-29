@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from realog import debug
-import monkNode as Node
-import monkModule as module
+from . import monkNode as Node
+from . import module
 
 
 ##

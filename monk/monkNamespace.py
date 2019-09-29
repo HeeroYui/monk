@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from realog import debug
-import monkNode as Node
+from . import monkNode as Node
 
 class Namespace(Node.Node):
 	def __init__(self, stack=[], file="", lineNumber=0, documentation=[]):

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from realog import debug
 import sys
-import monkTools
+from monk import tools
 import re
 
 
@@ -14,9 +14,9 @@ import re
 ## @param[in] value String to transform.
 ## @return Transformed string.
 ##
-def transcode(value):
+def transcode(value, _base_path):
 	
-	
+	"""
 	# named link : [[http://plop.html | link name]]
 	value = re.sub(r'\[\[http://(.*?) \| (.*?)\]\]',
 	               r'<a href="http://\1">\2</a>',
@@ -25,6 +25,15 @@ def transcode(value):
 	# direct link : [[http://plop.html]]
 	value = re.sub(r'\[\[http://(.*?)\]\]',
 	               r'<a href="http://\1">http://\1</a>',
+	               value)
+	# named link : [[https://plop.html | link name]]
+	value = re.sub(r'\[\[https://(.*?) \| (.*?)\]\]',
+	               r'<a href="https://\1">\2</a>',
+	               value)
+	
+	# direct link : [[https://plop.html]]
+	value = re.sub(r'\[\[https://(.*?)\]\]',
+	               r'<a href="https://\1">http://\1</a>',
 	               value)
 	
 	# direct lib link : [lib[libname]]
@@ -43,27 +52,42 @@ def transcode(value):
 	value = re.sub(r'\[(lib|class|methode)\[(.*?)\]\]',
 	               replace_link_class,
 	               value)
-	
 	"""
-	p = re.compile('\[\[(.*?)(|(.*?))\]\])',
-	               flags=re.DOTALL)
+	if len(_base_path) != 0:
+		base_path = (_base_path + '/').replace('/','__')
+	else:
+		base_path = ""
+	# named image : ![hover Value](http://sdfsdf.svg)
+	value = re.sub(r'\[(.*?)\][ \t]*\(http://(.*?)\)',
+	               r'<a href="http://\2">\1</a>',
+	               value)
+	value = re.sub(r'\[(.*?)\][ \t]*\(https://(.*?)\)',
+	               r'<a href="https://\2">\1</a>',
+	               value)
+	"""
+	value = re.sub(r'\[(.*?)\][ \t]*\((.*?)\.md\)',
+	               r'<a href="' + base_path + r'\2.html">\1</a>',
+	               value)
+	"""
+	p = re.compile('\[(.*?)\][ \t]*\((.*?)\.md\)')
 	value = p.sub(replace_link,
 	              value)
-	"""
+	p = re.compile('\[(.*?)\][ \t]*\((.*?)\)')
+	value = p.sub(replace_link,
+	              value)
+	
 	return value
 
-"""
+
 def replace_link(match):
 	if match.group() == "":
 		return ""
-	#debug.verbose("plop: " + str(match.group()))
-	value  = "<ul>"
-	value += re.sub(r':INDENT:',
-	               r'',
-	               match.group())
-	value += "</ul>"
-	return transcode(value)
-"""
+	debug.verbose("plop: " + str(match.group()))
+	value  = '<a href="'
+	value += match.groups()[1].replace("/", "__")
+	value += '.html">' + match.groups()[0] + '</a>'
+	return value
+
 
 def replace_link_class(match):
 	if match.group() == "":

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from realog import debug
 import sys
-import monkTools
+from monk import tools
 import re
 
 listRegExp = [

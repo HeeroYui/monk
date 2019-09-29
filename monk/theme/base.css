@@ -29,6 +29,10 @@ body {
 	overflow: visible;
 	color: #ffffff;
 	display: block;
+	background-image: url('entreprise.png');
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-position: center;
 }
 
 .navbar div {
@@ -47,12 +51,12 @@ body {
 	right: 0;
 	left: 0;
 	margin-bottom: 0;
-	background-color: #d44413;
-	border: 1px solid #c64012;
+	background-color: #7fac1e;
+	border: 1px solid #7fac1e;
 	font-size: 15px;
 	font-weight: 200;
 	color: #ffffff;
-	text-shadow: 0 1px 0 #ce4213;
+	text-shadow: 0 1px 0 #3b510c;
 	padding: 10px 20px 10px;
 	margin-left: -20px;
 	overflow:scroll;
@@ -77,6 +81,28 @@ h1, h2, h3, h4, h5, h6 {
 p {
 	margin: 0 0 10px;
 	display: block;
+}
+
+code {
+	background-color: rgb(251, 229, 225);
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	box-sizing: border-box;
+	color: rgb(192, 52, 29);
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 18.9px;
+	margin-top: 0px;
+	overflow-wrap: normal;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	padding-right: 4px;
+	padding-top: 2px;
+	text-align: start;
+	white-space: pre-wrap;
+	word-break: keep-all;
 }
 
 pre {
@@ -200,4 +226,24 @@ pre {
 .code-class {
 	text-decoration:none;
 	color:#006cb4;
+}
+
+table {
+	border-collapse:collapse;
+}
+td {
+	padding:4px;
+	border:1px solid #000;
+	vertical-align:top;
+}
+
+#my-table {
+	width:30%;
+	border-collapse:collapse;
+}
+#my-table td{
+	width:2000px;
+	padding:4px;
+	border:1px solid #000;
+	vertical-align:top;
 }

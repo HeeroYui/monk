@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from realog import debug
 import sys
-import monkTools
+from monk import tools
 import codeHL
 import re
 
@@ -16,7 +16,7 @@ import re
 ## @param[in] value String to transform.
 ## @return Transformed string.
 ##
-def transcode(value):
+def transcode(value, _base_path):
 	#value = re.sub(r'\[code(( |\t|\n|\r)+style=(.*))?\](.*?)\[/code\]',
 	"""
 	value = re.sub(r'```(( |\t|\n|\r){\.(.*?))?\}(.*?)\```',
@@ -24,6 +24,9 @@ def transcode(value):
 	               value,
 	               flags=re.DOTALL)
 	"""
+	value = re.sub(r'```(.*?)```',
+	               r'<code>\1</code>',
+	               value)
 	value = re.sub(r'```(( |\t|\n|\r)*(\{\.(.*?)\}))?(.*?)\```',
 	               replace_code, #r'<pre>\4</pre>',
 	               value,

@@ -15,16 +15,16 @@ import lex
 
 import inspect
 from realog import debug
-import monkClass as Class
-import monkNamespace as Namespace
-import monkStruct as Struct
-import monkUnion as Union
-import monkMethode as Methode
-import monkEnum as Enum
-import monkVariable as Variable
-import monkNode as Node
-import monkUsing as Using
-import monkTypedef as Typedef
+from . import monkClass as Class
+from . import monkNamespace as Namespace
+from . import monkStruct as Struct
+from . import monkUnion as Union
+from . import monkMethode as Methode
+from . import monkEnum as Enum
+from . import monkVariable as Variable
+from . import monkNode as Node
+from . import monkUsing as Using
+from . import monkTypedef as Typedef
 
 tokens = [
 	'NUMBER',

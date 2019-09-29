@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from realog import debug
 import sys
-import monkTools
+from monk import tools
 import re
 
 _comment_code = "[comment]:"
@@ -11,7 +11,7 @@ _comment_code = "[comment]:"
 ## @param[in] value String to transform.
 ## @return Transformed string.
 ##
-def transcode(value):
+def transcode(value, _base_path):
 	out = "";
 	for elem in value.split("\n"):
 		if     len(elem) >= len(_comment_code) \

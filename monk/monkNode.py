@@ -226,6 +226,8 @@ class Node():
 	def get_doc_website_page(self):
 		if self.module_link == None:
 			return ""
+		if self.module_link.get_website() == "":
+			return ""
 		ret = self.module_link.get_website()
 		if ret[-1] != '/':
 			ret += '/'

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from realog import debug
-import monkType as Type
-import monkNode as node
+from . import monkType as Type
+from . import monkNode as node
 from . import module
 import re
 

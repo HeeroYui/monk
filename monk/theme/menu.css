@@ -2,8 +2,8 @@
 
 /*----------------MENU-----------------*/
 div#menu {
-	border-left: 4px solid #8d2d0d;
-	border-bottom: 4px solid #8d2d0d;
+	border-left: 4px solid #3b510c;
+	border-bottom: 4px solid #3b510c;
 	padding-left: 4px;
 	padding-bottom: 4px;
 }
@@ -14,24 +14,24 @@ div#menu h2{
 	margin: 0;
 	padding: 3px;
 	padding-left: 6px;
-	background: #d44413;
+	background: #70981a;
 }
 div#menu h3{
 	margin: 0;
 	padding: 6px;
-	background: #d44413;
+	background: #70981a;
 }
 
 div#menu a{
 	color: #000000;
-	bgcolor=#d44413;
+	bgcolor=#70981a;
 	FONT-FAMILY: Arial;
 	FONT-SIZE: 9pt;
 }
 div#menu li {
 	list-style:none;
 	width:160px;
-	border-top: 1px solid #d44413;
+	border-top: 1px solid #70981a;
 }
 
 div#menu ul {
@@ -44,19 +44,19 @@ div#menu li a {
 	padding: 2px 0px 2px 4px;
 	text-decoration: none;
 	width:160px;
-	border-left: 4px solid #8d2d0d;
+	border-left: 4px solid #70981a;
 }
 
 
 div#menu ul.niveau1 ul {
-	border-left: 20px solid #d44413;
-	background: #1a62db;
+	border-left: 20px solid #70981a;
+	background: #739d19;
 }
 div#menu ul.niveau1 li {
-	background: #b43a10;
+	background: #638716;
 }
 
 div#menu li a:hover {
-	border-left-color: #ff3800;
+	border-left-color: #b3f329;
 	font-weight:bold;
 }

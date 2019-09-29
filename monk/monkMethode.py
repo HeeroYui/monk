@@ -1,8 +1,8 @@
 ##!/usr/bin/python
 from realog import debug
-import monkNode as Node
-import monkType as Type
-import monkVariable as Variable
+from . import monkNode as Node
+from . import monkType as Type
+from . import monkVariable as Variable
 
 class Methode(Node.Node):
 	def __init__(self, stack=[], file="", lineNumber=0, documentation=[], className = ""):
@@ -65,7 +65,7 @@ class Methode(Node.Node):
 		while len(stack) > 0\
 		      and (    stack[0] == 'virtual'\
 		            or stack[0] == 'static'\
-		            or stack[0] == 'inline')::
+		            or stack[0] == 'inline'):
 			if stack[0] == 'virtual':
 				self.virtual = True
 				stack = stack[1:]
