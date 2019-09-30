@@ -34,32 +34,50 @@ import re
 ## @return Transformed string.
 ##
 def transcode(value, _base_path = ""):
-	value = re.sub(r'\n((  - )|(  \* )|(  # )|(\*  ))',
-	               r'\n:INDENT_1:[STAR]',
-	               value)
 	value = re.sub(r'\n((  - \[ \] )|(  \* \[ \] )|(  # \[ \] )|(\* \[ \] ))',
 	               r'\n:INDENT_1:[CHECK_BOX_0]',
 	               value)
-	value = re.sub(r'\n((  - \[(x|X)\] )|(  \* \[(x|X)\] )|(  # \[(x|X)\] )|(\* \[(x|X)\] ))',
+	value = re.sub(r'\n((  - \[x\] )|(  \* \[x\] )|(  # \[x\] )|(\* \[x\] ))',
 	               r'\n:INDENT_1:[CHECK_BOX_1]',
 	               value)
-	value = re.sub(r'\n(    |\t)((  - )|(  \* )|(  # )|(\*  ))',
-	               r'\n:INDENT_1::INDENT_2:[STAR]',
+	value = re.sub(r'\n((  - \[X\] )|(  \* \[X\] )|(  # \[X\] )|(\* \[X\] ))',
+	               r'\n:INDENT_1:[CHECK_BOX_2]',
+	               value)
+	value = re.sub(r'\n((  - )|(  \* )|(  # )|(\*  ))',
+	               r'\n:INDENT_1:[TICK]',
+	               value)
+	value = re.sub(r'\n((  - )|(  \* )|(  # )|(\*  ))',
+	               r'\n:INDENT_1:[STAR]',
+	               value)
+	value = re.sub(r'\n((  - )|(  \* )|(  # )|(\*  ))',
+	               r'\n:INDENT_1:[SHARP]',
+	               value)
+	value = re.sub(r'\n((  - )|(  \* )|(  # )|(\*  ))',
+	               r'\n:INDENT_1:[STAR]',
 	               value)
 	value = re.sub(r'\n(    |\t)((  - \[ \] )|(  \* \[ \] )|(  # \[ \] )|(\* \[ \] ))',
 	               r'\n:INDENT_1::INDENT_2:[CHECK_BOX_0]',
 	               value)
-	value = re.sub(r'\n(    |\t)((  - \[(x|X)\] )|(  \* \[(x|X)\] )|(  # \[(x|X)\] )|(\* \[(x|X)\] ))',
+	value = re.sub(r'\n(    |\t)((  - \[x\] )|(  \* \[x\] )|(  # \[x\] )|(\* \[x\] ))',
 	               r'\n:INDENT_1::INDENT_2:[CHECK_BOX_1]',
 	               value)
-	value = re.sub(r'\n(        |\t\t)((  - )|(  \* )|(  # )|(\*  ))',
-	               r'\n:INDENT_1::INDENT_2::INDENT_3:[STAR]',
+	value = re.sub(r'\n(    |\t)((  - \[X\] )|(  \* \[X\] )|(  # \[x\] )|(\* \[x\] ))',
+	               r'\n:INDENT_1::INDENT_2:[CHECK_BOX_2]',
+	               value)
+	value = re.sub(r'\n(    |\t)((  - )|(  \* )|(  # )|(\*  ))',
+	               r'\n:INDENT_1::INDENT_2:[STAR]',
 	               value)
 	value = re.sub(r'\n(        |\t\t)((  - \[ \] )|(  \* \[ \] )|(  # \[ \] )|(\* \[ \] ))',
 	               r'\n:INDENT_1::INDENT_2::INDENT_3:[CHECK_BOX_0]',
 	               value)
-	value = re.sub(r'\n(        |\t\t)((  - \[(x|X)\] )|(  \* \[(x|X)\] )|(  # \[(x|X)\] )|(\* \[(x|X)\] ))',
+	value = re.sub(r'\n(        |\t\t)((  - \[x\] )|(  \* \[x\] )|(  # \[x\] )|(\* \[x\] ))',
 	               r'\n:INDENT_1::INDENT_2::INDENT_3:[CHECK_BOX_1]',
+	               value)
+	value = re.sub(r'\n(        |\t\t)((  - \[X\] )|(  \* \[X\] )|(  # \[X\] )|(\* \[X\] ))',
+	               r'\n:INDENT_1::INDENT_2::INDENT_3:[CHECK_BOX_2]',
+	               value)
+	value = re.sub(r'\n(        |\t\t)((  - )|(  \* )|(  # )|(\*  ))',
+	               r'\n:INDENT_1::INDENT_2::INDENT_3:[STAR]',
 	               value)
 	p = re.compile('((\:INDENT_1\:(.*?)\n)*)',
 	               flags=re.DOTALL)
@@ -67,15 +85,34 @@ def transcode(value, _base_path = ""):
 	              value)
 	
 	value = re.sub(r'\[STAR\](.*?)\n',
-	               r'<li>\1</li>',
+	               r'<li class="list-star">\1</li>',
+	               value,
+	               flags=re.DOTALL)
+	value = re.sub(r'\[SHARP\](.*?)\n',
+	               r'<li class="list-sharp">\1</li>',
+	               value,
+	               flags=re.DOTALL)
+	value = re.sub(r'\[TICK\](.*?)\n',
+	               r'<li class="list-tick">\1</li>',
+	               value,
+	               flags=re.DOTALL)
+	value = re.sub(r'\[NUMBER\](.*?)\n',
+	               r'<li class="list-number">\1</li>',
+	               value,
+	               flags=re.DOTALL)
+	value = re.sub(r'\[CHECK_BOX_2\](.*?)\n',
+	               #r'<li class="list-check-box"><input type="checkbox" checked=""/>\1</li>',
+	               r'<li class="list-check-box-tick">\1</li>',
 	               value,
 	               flags=re.DOTALL)
 	value = re.sub(r'\[CHECK_BOX_1\](.*?)\n',
-	               r'<li><input type="checkbox" checked=""/>\1</li>',
+	               #r'<li class="list-check-box"><input type="checkbox" checked=""/>\1</li>',
+	               r'<li class="list-check-box-check">\1</li>',
 	               value,
 	               flags=re.DOTALL)
 	value = re.sub(r'\[CHECK_BOX_0\](.*?)\n',
-	               r'<li><input type="checkbox"/>\1</li>',
+	               #r'<li class="list-check-box"><input type="checkbox"/>\1</li>',
+	               r'<li class="list-check-box">\1</li>',
 	               value,
 	               flags=re.DOTALL)
 	

@@ -24,6 +24,28 @@ body {
 	display: block;
 };
 
+/*
+body::before {
+	counter-reset: hhindexer;
+}
+
+h2::before {
+	content: counter(hhindexer) ".\0000a0\0000a0";
+	counter-increment: hhindexer;
+	counter-reset: hhhindexer;
+}
+h3::before {
+	content: counter(hhindexer) "." counter(hhhindexer) ".\0000a0\0000a0";
+	counter-increment: hhhindexer;
+	counter-reset: hhhhindexer;
+}
+h4::before {
+	content: counter(hhindexer) "." counter(hhhindexer) "." counter(hhhhindexer) ".\0000a0\0000a0";
+	counter-increment: hhhhindexer;
+}
+
+*/
+
 .navbar {
 	z-index: 1;
 	overflow: visible;
@@ -68,6 +90,7 @@ body {
 	color: #000000;
 }
 
+
 h1, h2, h3, h4, h5, h6 {
 	display: block;
 	margin: 10px 0;
@@ -77,6 +100,26 @@ h1, h2, h3, h4, h5, h6 {
 	color: inherit;
 	text-rendering: optimizelegibility;
 }
+
+
+h1 {
+	margin: 20px 0px 10px 0;
+	font-size: 20px;
+}
+
+h2 {
+	margin: 15px 0px 10px 0;
+	font-size: 18px;
+}
+
+h3 {
+	font-size: 16px;
+}
+
+h4, h5, h6 {
+	font-size: 14px;
+}
+
 
 p {
 	margin: 0 0 10px;
@@ -231,9 +274,16 @@ pre {
 table {
 	border-collapse:collapse;
 }
-td {
+table.doc_table td {
 	padding:4px;
 	border:1px solid #000;
+	vertical-align:top;
+}
+
+table.doc_table th {
+	padding:4px;
+	border:1px solid #000;
+	background: #7fac1e;
 	vertical-align:top;
 }
 
@@ -246,4 +296,35 @@ td {
 	padding:4px;
 	border:1px solid #000;
 	vertical-align:top;
+}
+
+.list-star {
+	list-style-type: circle;
+}
+
+.list-tick {
+	//list-style-type: '- ';
+	list-style-type: disc;
+}
+
+.list-sharp {
+	list-style-type: square;
+}
+
+
+.list-number {
+	list-style-type: decimal;
+}
+
+
+.list-check-box {
+	list-style-type: "\2610\0020";
+}
+
+.list-check-box-check {
+	list-style-type: "\2612\0020";
+}
+
+.list-check-box-tick {
+	list-style-type: "\2611\0020";
 }

@@ -38,6 +38,7 @@ def transcode(value, _base_path = ""):
 	value = MD_IndentAndDot.transcode(value, _base_path)
 	value = MD_Code.transcode(value, _base_path)
 	value = MD_lineReturn.transcode(value, _base_path)
+	value = MD_Title.transcode_clean_empty_line_after(value, _base_path)
 	value = MD_Text.transcode(value, _base_path)
 	"""
 	value = BB_Text.transcode(value, _base_path)

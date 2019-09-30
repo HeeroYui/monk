@@ -338,7 +338,7 @@ def generate_page(my_lutin_doc, out_folder, element, name_lib=""):
 	if element.get_node_type() in ['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union', 'using']:
 		listBase = element.get_all_sub_type(['library', 'application', 'namespace', 'class', 'struct', 'enum', 'union', 'using'])
 		for elem in listBase:
-			generate_page(out_folder, header, footer, elem['node'], name_lib)
+			generate_page(my_lutin_doc, out_folder, elem['node'], name_lib)
 	filename = out_folder + '/' + generate_html_page_name(element)
 	tools.create_directory_of_file(filename);
 	file = open(filename, "w")
@@ -728,7 +728,7 @@ def create_generic_header(my_lutin_doc, out_folder) :
 			if name == "index":
 				continue
 			tutorialList += '<ul class="niveau1">'
-			tutorialList += '<li><a href="tutorial_' + output_file_name + '">' + capitalise_first_letter(camel_case_decode(name)) + '</a></li>\n'
+			tutorialList += '<li><a href="tutorial__' + output_file_name + '">' + capitalise_first_letter(camel_case_decode(name)) + '</a></li>\n'
 			tutorialList += '</ul>'
 		if tutorialList != "":
 			generic_header += '<h3>Tutorials:</h3>'
@@ -855,7 +855,7 @@ def generate(my_lutin_doc, out_folder) :
 			outData += codeBB.transcode(inData)
 		elif doc_input_name[-2:] == "md":
 			outData += codeMarkDown.transcode(inData)
-		outData += genericFooter
+		outData += create_generic_footer(my_lutin_doc, out_folder)
 		tools.file_write_data(output_file_name, outData)
 	for list_value in [my_lutin_doc.list_doc_file, my_lutin_doc.list_test_file, my_lutin_doc.list_manual_file]:
 		for doc_input_name,outpath in list_value :

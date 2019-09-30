@@ -354,6 +354,7 @@ class parse_file():
 			if tok.type == 'COMMENT_SINGLELINE_DOC':
 				self.last_comment.append(tok.value)
 			if tok.type == 'OPEN_BRACE':
+				debug.verbose("OPEN_BRACE ==> start")
 				if self.count_pthese >= 1:
 					# special case of lamba declaration inside initialisation of constructor
 					self.name_stack.append(tok.value)
@@ -372,6 +373,8 @@ class parse_file():
 						debug.verbose("openBrace *** " + str(self.name_stack))
 					elif 'namespace' in self.name_stack:
 						self.brace_type_push('namespace', self.name_stack)
+					elif 'enum' in self.name_stack and 'class' in self.name_stack:
+						self.brace_type_push('enum', self.name_stack)
 					elif 'class' in self.name_stack:
 						self.brace_type_push('class', self.name_stack)
 					elif 'enum' in self.name_stack:
@@ -389,6 +392,7 @@ class parse_file():
 					self.stack = []
 					self.name_stack = []
 					self.last_comment = []
+				debug.verbose("OPEN_BRACE ==> END")
 			elif tok.type == 'CLOSE_BRACE':
 				if self.count_pthese >= 1:
 					debug.info("plop 2 " +str(self.count_pthese))
@@ -454,7 +458,7 @@ class parse_file():
 					self.name_stack.append(tok.value)
 			elif tok.type == 'SEMI_COLON':
 				if self.count_pthese >= 1:
-					debug.info("plop 3 " +str(self.count_pthese))
+					debug.info("plop 3 " + str(self.count_pthese))
 					# special case of lamba declaration inside initialisation of constructor
 					self.name_stack.append(tok.value)
 				else:

@@ -22,7 +22,7 @@ def create_directory_of_file(file):
 
 def remove_folder_and_sub_folder(path):
 	if os.path.isdir(path):
-		debug.verbose("remove folder : '" + path + "'")
+		debug.verbose("remove folder: '" + path + "'")
 		shutil.rmtree(path)
 
 def remove_file(path):

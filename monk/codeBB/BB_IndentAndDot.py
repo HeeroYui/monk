@@ -42,7 +42,7 @@ import re
 ## @param[in] value String to transform.
 ## @return Transformed string.
 ##
-def transcode(value, _base_path):
+def transcode(value, _base_path = ""):
 	
 	value = re.sub(r'\n:',
 	               r'\n:INDENT:',

@@ -14,13 +14,13 @@ from realog import debug
 my_args = arguments.Arguments()
 my_args.add("h", "help", desc="display this help")
 my_args.add_section("option", "Can be set one time in all case")
-my_args.add("v", "verbose", list=[["0","None"],["1","error"],["2","warning"],["3","info"],["4","debug"],["5","verbose"]], desc="Display makefile debug level (verbose) default =2")
+my_args.add("v", "verbose", haveParam=True, list=[["0","None"],["1","error"],["2","warning"],["3","info"],["4","debug"],["5","verbose"]], desc="Display makefile debug level (verbose) default =2")
 my_args.add("C", "color", desc="Display makefile output in color")
 
 my_args.add_section("cible", "generate in order set")
 local_argument = my_args.parse()
 
-debug.set_level(6)
+#debug.set_level(6)
 
 ##
 ## @brief Display the help of this makefile

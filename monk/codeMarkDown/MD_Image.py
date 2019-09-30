@@ -24,21 +24,38 @@ def transcode(value, _base_path):
 	value = re.sub(r'!\[https://(.*?)\][ \t]*\((.*?)\)',
 	               r'<img src="https://\2" alt="\1"/>',
 	               value)
-	value = re.sub(r'!\[(.*?)\][ \t]*\((.*?)\?w=([0-9]+)%\)',
-	               r'<img src="' + base_path + r'\2" alt="\1" width="\3%"/>',
-	               value)
-	value = re.sub(r'!\[(.*?)\][ \t]*\((.*?)\?w=([0-9]+)px\)',
-	               r'<img src="' + base_path + r'\2" alt="\1" width="\3px"/>',
-	               value)
-	value = re.sub(r'!\[(.*?)\][ \t]*\((.*?)\?h=([0-9]+)px\)',
-	               r'<img src="' + base_path + r'\2" alt="\1" height="\3px"/>',
-	               value)
-	value = re.sub(r'!\[(.*?)\][ \t]*\((.*?)\?w=([0-9]+)px&h=([0-9]+)px\)',
-	               r'<img src="' + base_path + r'\2" alt="\1" width="\3px" height="\4px"/>',
-	               value)
-	value = re.sub(r'!\[(.*?)\][ \t]*\((.*?)\)',
-	               r'<img src="' + base_path + r'\2" alt="\1"/>',
+	
+	p = re.compile('!\[(.*?)\][ \t]*\((.*?)\)')
+	value = p.sub(replace_image,
+	              value)
+	value = re.sub(r':BASE_PATH:',
+	               r'' + base_path,
 	               value)
 	return value
 
 
+
+def replace_image(match):
+	if match.group() == "":
+		return ""
+	debug.verbose("Image parse: " + str(match.group()))
+	value  = '<img src=":BASE_PATH:'
+	value += match.groups()[1].replace("/", "__")
+	value += '" '
+	
+	alt_properties = match.groups()[0].split("|")
+	alt = False
+	for elem in alt_properties:
+		if alt == False:
+			alt = True
+			value += 'alt="' + elem + '" '
+			continue
+		key_alt, value_alt = elem.split("=")
+		if key_alt == "width":
+			value += 'width="' + value_alt + '" '
+		elif key_alt == "height":
+			value += 'height="' + value_alt + '" '
+		else:
+			debug.warning("not manage element '" + key_alt + "' in '" + str(match.group()) + "'")
+	value += '/>'
+	return value
