@@ -633,21 +633,33 @@ def generate_page(my_lutin_doc, out_folder, element, name_lib=""):
 	
 
 
-
-def create_generic_header(my_lutin_doc, out_folder) :
+def create_base_header(my_lutin_doc, out_folder, _to_print = False) :
 	my_doc = my_lutin_doc.get_base_doc_node()
 	tools.copy_file(tools.get_current_path(__file__)+"/theme/base.css", out_folder+"/base.css")
 	tools.copy_file(tools.get_current_path(__file__)+"/theme/menu.css", out_folder+"/menu.css")
 	# create common header
-	generic_header  = '<!DOCTYPE html>\n'
-	generic_header += '<html>\n'
-	generic_header += '<head>\n'
-	generic_header += '	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">\n'
-	generic_header += '	<title>' + my_doc.get_name() + ' Library</title>\n'
-	generic_header += '	<link rel="stylesheet" href="base.css">\n'
-	generic_header += '	<link rel="stylesheet" href="menu.css">\n'
-	generic_header += '</head>\n'
-	generic_header += '<body>\n'
+	base_header  = '<!DOCTYPE html>\n'
+	base_header += '<html>\n'
+	base_header += '<head>\n'
+	base_header += '	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">\n'
+	base_header += '	<title>' + my_doc.get_name() + ' Library</title>\n'
+	if _to_print == False:
+		base_header += '	<link rel="stylesheet" href="base.css">\n'
+		base_header += '	<link rel="stylesheet" href="menu.css">\n'
+	else:
+		base_header += '	<link rel="stylesheet" href="base_print.css">\n'
+	
+	base_header += '</head>\n'
+	#base_header += '<div class="button_print">print</div>\n'
+	return base_header
+
+def create_generic_header(my_lutin_doc, out_folder) :
+	my_doc = my_lutin_doc.get_base_doc_node()
+	tools.copy_file(tools.get_current_path(__file__)+"/theme/base.css", out_folder+"/base.css")
+	tools.copy_file(tools.get_current_path(__file__)+"/theme/base_print.css", out_folder+"/base_print.css")
+	tools.copy_file(tools.get_current_path(__file__)+"/theme/menu.css", out_folder+"/menu.css")
+	# create common header
+	generic_header  = create_base_header(my_lutin_doc, out_folder)
 	generic_header += '	<div class="navbar navbar-fixed-top">\n'
 	generic_header += '		<div class="container">\n'
 	if my_doc.get_node_type() == 'library':
@@ -791,7 +803,7 @@ def create_generic_header(my_lutin_doc, out_folder) :
 	generic_header += '<image src="entreprise.png" width="200px" style="border:4px solid #FFFFFF;"/>\n'
 	generic_header += "		</div>\n"
 	generic_header += "	</div>\n"
-	generic_header += "	<div class=\"container\" id=\"content\">\n"
+	generic_header += "	<div class=\"container_data\" >\n"
 	
 	return generic_header
 
@@ -863,18 +875,22 @@ def generate(my_lutin_doc, out_folder) :
 			base_path = os.path.dirname(outpath)
 			
 			output_file_name = out_folder + outpath.replace('/','__') + ".html"
+			output_file_name_print = out_folder + outpath.replace('/','__') + "____print.html"
 			debug.debug("output file : " + output_file_name)
 			tools.create_directory_of_file(output_file_name)
 			inData = tools.file_read_data(doc_input_name)
 			if inData == "":
 				continue
-			outData = create_generic_header(my_lutin_doc, out_folder)
+			generic_header = create_generic_header(my_lutin_doc, out_folder)
+			base_header  = create_base_header(my_lutin_doc, out_folder, _to_print = True)
+			outData = ""
 			if doc_input_name[-2:] == "bb":
 				outData += codeBB.transcode(inData, base_path)
 			elif doc_input_name[-2:] == "md":
 				outData += codeMarkDown.transcode(inData, base_path)
 			outData += create_generic_footer(my_lutin_doc, out_folder)
-			tools.file_write_data(output_file_name, outData)
+			tools.file_write_data(output_file_name, generic_header + outData)
+			tools.file_write_data(output_file_name_print, base_header + outData)
 	
 	
 	for image_input_name,outpath in my_lutin_doc.list_image_file:

@@ -3,7 +3,9 @@ from realog import debug
 import sys
 from monk import tools
 import re
+import os
 
+basic_link_path = ""
 
 ##
 ## @brief Transcode:
@@ -15,44 +17,8 @@ import re
 ## @return Transformed string.
 ##
 def transcode(value, _base_path):
-	
-	"""
-	# named link : [[http://plop.html | link name]]
-	value = re.sub(r'\[\[http://(.*?) \| (.*?)\]\]',
-	               r'<a href="http://\1">\2</a>',
-	               value)
-	
-	# direct link : [[http://plop.html]]
-	value = re.sub(r'\[\[http://(.*?)\]\]',
-	               r'<a href="http://\1">http://\1</a>',
-	               value)
-	# named link : [[https://plop.html | link name]]
-	value = re.sub(r'\[\[https://(.*?) \| (.*?)\]\]',
-	               r'<a href="https://\1">\2</a>',
-	               value)
-	
-	# direct link : [[https://plop.html]]
-	value = re.sub(r'\[\[https://(.*?)\]\]',
-	               r'<a href="https://\1">http://\1</a>',
-	               value)
-	
-	# direct lib link : [lib[libname]]
-	value = re.sub(r'\[lib\[(.*?) \| (.*?)\]\]',
-	               r'<a href="../\1">\2</a>',
-	               value)
-	
-	value = re.sub(r'\[doc\[(.*?) \| (.*?)\]\]',
-	               r'<a href="\1.html">\2</a>',
-	               value)
-	
-	value = re.sub(r'\[tutorial\[(.*?) \| (.*?)\]\]',
-	               r'<a href="tutorial_\1.html">\2</a>',
-	               value)
-	
-	value = re.sub(r'\[(lib|class|methode)\[(.*?)\]\]',
-	               replace_link_class,
-	               value)
-	"""
+	global basic_link_path
+	basic_link_path = _base_path
 	if len(_base_path) != 0:
 		base_path = (_base_path + '/').replace('/','__')
 	else:
@@ -80,29 +46,24 @@ def transcode(value, _base_path):
 
 
 def replace_link(match):
+	global basic_link_path
 	if match.group() == "":
 		return ""
-	debug.verbose("plop: " + str(match.group()))
+	debug.warning("plop: " + str(match.group()))
+	debug.warning("plop: " + str(match.groups()))
 	value  = '<a href="'
-	value += match.groups()[1].replace("/", "__")
-	value += '.html">' + match.groups()[0] + '</a>'
-	return value
-
-
-def replace_link_class(match):
-	if match.group() == "":
-		return ""
-	#debug.info("plop: " + str(match.group()))
-	if match.groups()[0] == 'class':
-		className = match.groups()[1]
-		value = re.sub(':', '_', className)
-		return '<a href="class_' + value + '.html">' + className + '</a>'
-	elif match.groups()[0] == 'lib':
-		return match.groups()[1]
-	elif match.groups()[0] == 'methode':
-		return match.groups()[1]
+	if basic_link_path != "":
+		link = os.path.join(basic_link_path, match.groups()[1]);
+		debug.warning("BASIC path : " + link)
+		link = os.path.normpath(link)
+		debug.warning("        ==>  " + link)
 	else:
-		return match.groups()[1]
-
-
+		link = match.groups()[1]
+	
+	value += link.replace("/", "__")
+	if match.groups()[0] != "":
+		value += '.html">' + match.groups()[0] + '</a>'
+	else:
+		value += '.html">' + match.groups()[1] + '</a>'
+	return value
 
