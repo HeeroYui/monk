@@ -70,8 +70,13 @@ def transcode_part2(value):
 	value = value.replace(":IMAGE:SLASH:", "/")
 	return value
 
+
+element_type_count={"Image":0}
+
+
 def replace_image(match):
 	global image_base_path
+	global element_type_count
 	if match.group() == "":
 		return ""
 	debug.verbose("Image parse: " + str(match.group()))
@@ -116,14 +121,15 @@ def replace_image(match):
 		else:
 			debug.warning("not manage element '" + key_alt + "' in '" + str(match.group()) + "'")
 	value += '/>'
-	value = value.replace("_", ":IMAGE:UNDER:SCORE:")
-	value = value.replace("*", ":IMAGE:STAR:")
-	value = value.replace("[", ":IMAGE:BRACKET:START:")
-	value = value.replace("]", ":IMAGE:BRACKET:STOP:")
-	value = value.replace(":BASE:IMAGE:UNDER:SCORE:PATH:", ":BASE_PATH:")
+	
+	if type in element_type_count.keys():
+		element_type_count[type] += 1
+	else:
+		element_type_count[type] = 1
 	
 	if showTitle == True:
-		value = "<br/>" + value + "<br/><u><b>Image: </b>" + title + "</u><br/>"
+		value = "<br/>" + value + "<br/>[" + str(element_type_count[type]) + "] <u><b>" + type + ": </b>" + title + "</u><br/>"
+	
 	
 	if center == True:
 		value = "<center>" + value + "</center>"
@@ -131,6 +137,12 @@ def replace_image(match):
 		value = "<right>" + value + "</right>"
 	elif left == True:
 		value = "<left>" + value + "</left>"
+	
+	value = value.replace("_", ":IMAGE:UNDER:SCORE:")
+	value = value.replace("*", ":IMAGE:STAR:")
+	value = value.replace("[", ":IMAGE:BRACKET:START:")
+	value = value.replace("]", ":IMAGE:BRACKET:STOP:")
+	value = value.replace(":BASE:IMAGE:UNDER:SCORE:PATH:", ":BASE_PATH:")
 	
 	return value
 
