@@ -44,6 +44,12 @@ def transcode(value, _base_path):
 	
 	return value
 
+def transcode_part2(value):
+	value = value.replace(":LINK:UNDER:SCORE:", "_")
+	value = value.replace(":LINK:STAR:", "*")
+	value = value.replace(":LINK:BRACKET:START:", "[")
+	value = value.replace(":LINK:BRACKET:STOP:", "]")
+	return value
 
 def replace_link(match):
 	global basic_link_path
@@ -65,5 +71,9 @@ def replace_link(match):
 		value += '.html">' + match.groups()[0] + '</a>'
 	else:
 		value += '.html">' + match.groups()[1] + '</a>'
+	value = value.replace("_", ":LINK:UNDER:SCORE:")
+	value = value.replace("*", ":LINK:STAR:")
+	value = value.replace("[", ":LINK:BRACKET:START:")
+	value = value.replace("]", ":LINK:BRACKET:STOP:")
 	return value
 

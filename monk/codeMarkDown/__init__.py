@@ -37,18 +37,29 @@ def transcode(value, _base_path = ""):
 	value = MD_Title.transcode(value, _base_path)
 	value = MD_IndentAndDot.transcode(value, _base_path)
 	value = MD_Code.transcode(value, _base_path)
+	
+	value = MD_Table.transcode(value, _base_path)
 	value = MD_lineReturn.transcode(value, _base_path)
 	value = MD_Title.transcode_clean_empty_line_after(value, _base_path)
-	value = MD_Text.transcode(value, _base_path)
 	"""
 	value = BB_Text.transcode(value, _base_path)
 	value = BB_Specification.transcode(value, _base_path)
 	"""
-	value = MD_Table.transcode(value, _base_path)
 	value = MD_Image.transcode(value, _base_path)
 	value = MD_Link.transcode(value, _base_path)
 	value = MD_ResultSelection.transcode(value, _base_path)
+	
+	
+	
+	
+	value = MD_Text.transcode(value, _base_path)
+	
+	
+	
+	
 	value = MD_Code.transcode_part2(value)
+	value = MD_Image.transcode_part2(value)
+	value = MD_Link.transcode_part2(value)
 	return value
 
 ##

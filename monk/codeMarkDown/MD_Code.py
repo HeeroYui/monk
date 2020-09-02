@@ -38,6 +38,8 @@ def transcode(value, _base_path):
 def transcode_part2(value):
 	value = value.replace(":CODE:UNDER:SCORE:", "_")
 	value = value.replace(":CODE:STAR:", "*")
+	value = value.replace(":CODE:BRACKET:START:", "[")
+	value = value.replace(":CODE:BRACKET:STOP:", "]")
 	return value
 
 
@@ -50,5 +52,7 @@ def replace_code(match):
 	#value = value.replace("\n", "<br/>")
 	value = value.replace("_", ":CODE:UNDER:SCORE:")
 	value = value.replace("*", ":CODE:STAR:")
+	value = value.replace("[", ":CODE:BRACKET:START:")
+	value = value.replace("]", ":CODE:BRACKET:STOP:")
 	return '<pre>' + str(value) + '</pre>'
 

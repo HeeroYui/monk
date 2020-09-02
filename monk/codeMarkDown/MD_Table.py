@@ -25,7 +25,7 @@ import re
 ##
 def transcode(value, _base_path):
 	
-	p = re.compile('((\n\|(.*)\|)*)',
+	p = re.compile('(\n(\|[^\n\|]*)*\|)*',
 	              flags=re.DOTALL)
 	value = p.sub(replace_table,
 	              value)
@@ -38,7 +38,9 @@ def replace_table(match):
 	table_index = 0
 	if match.group() == "":
 		return ""
-	debug.warning("=============================: " + str(match.group()))
+	debug.warning("=============================: Parse TABLE ...")
+	debug.warning(str(match.group()))
+	debug.warning("=============================: ")
 	value = '<table class="doc_table">'
 	value_global = re.sub(r'\n\|([\t -]*\|)+',
 	                      r'',
