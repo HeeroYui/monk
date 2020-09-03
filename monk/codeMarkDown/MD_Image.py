@@ -61,6 +61,7 @@ def transcode(value, _base_path):
 	#               value)
 	return value
 
+element_type_count={"Image":0}
 
 def transcode_part2(value):
 	value = value.replace(":IMAGE:UNDER:SCORE:", "_")
@@ -68,10 +69,11 @@ def transcode_part2(value):
 	value = value.replace(":IMAGE:BRACKET:START:", "[")
 	value = value.replace(":IMAGE:BRACKET:STOP:", "]")
 	value = value.replace(":IMAGE:SLASH:", "/")
+	
+	
 	return value
 
 
-element_type_count={"Image":0}
 
 
 def replace_image(match):
